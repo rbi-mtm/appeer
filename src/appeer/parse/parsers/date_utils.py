@@ -1,7 +1,7 @@
 """Functions related to parsing dates
 
 Nomenclature for the functions:
-    
+
     d : day (0-31), with an optional preceeding zero
         and optional suffix (st|nd|rd|th)
 
@@ -122,7 +122,7 @@ def get_d_M_y(entry):
     The case in month name is ignored.
 
     Examples that are matched:
-        
+
         18th October 2023
         05 Jun 2060
         31 February 9999
@@ -204,3 +204,105 @@ def normalize_d_M_y(dMY_date):
         return None
 
     return normalized_dMy_date
+
+def normalize_date_2iso(date):
+    """
+    Transforms ``date`` into the standard format (YYYY-MM-DD)
+
+    The following are acceptable formats of ``date``:
+
+        (1) YYYY
+        (2) YYYY-MM
+        (3) YYYY-MM-DD
+
+    If an invalid date is given, an error is raised.
+
+    Parameters
+    ----------
+    date : str
+        Date in YYYY, YYYY-MM or YYYY-MM-DD format
+
+    Returns
+    -------
+    normalized_date : str
+        Date in YYYY-MM-DD format
+
+    Raises
+    ------
+    ValueError
+        If the passed date is invalid or in invalid format
+
+    """
+
+    if not isinstance(date, str):
+        raise ValueError('Invalid date passed; must be a string.')
+
+    split_date = date.split('-')
+
+    # YYYY should always be first
+    try:
+        year = int(split_date[0])
+
+        year_str = str(year)
+
+        while len(year_str) < 4:
+            year_str = '0' + year_str
+
+    except ValueError as exc:
+        raise ValueError('Invalid year passed; must be in YYYY, MM-YYYY or DD-MM-YYYY format; the year must be positive.') from exc
+
+    if len(split_date) > 1:
+
+        try:
+            month = int(split_date[1])
+
+        except ValueError as exc:
+            raise ValueError('Invalid date passed; must be in YYYY, YYYY-MM or YYYY-MM-DD format.') from exc
+        if not 1 <= month <= 12:
+            raise ValueError('Invalid month passed; must be between 1 and 12')
+
+        month_str = str(month)
+
+        if len(month_str) == 1:
+            month_str = '0' + month_str
+
+    if len(split_date) > 2:
+
+        try:
+            day = int(split_date[2])
+
+        except ValueError as exc:
+            raise ValueError('Invalid date passed; must be in YYYY, YYYY-MM or YYYY-MM-DD format.') from exc
+        if not 1 <= day <= 31:
+            raise ValueError('Invalid day passed; must be between 1 and 31.')
+
+        day_str = str(day)
+
+        if len(day_str) == 1:
+            day_str = '0' + day_str
+
+    match len(split_date):
+
+        # Case when only YYYY was passsed
+        case 1:
+            normalized_date = f'{year_str}-01-01'
+
+        # Case when MM-YYYY was passed
+        case 2:
+            normalized_date = f'{year_str}-{month_str}-01'
+
+        case 3:
+            normalized_date = f'{year_str}-{month_str}-{day_str}'
+
+        case _:
+            raise ValueError('Invalid date passed; must be in YYYY, YYYY-MM or YYYY-MM-DD format.')
+
+    # Final check if normalized date is valid
+    y, m, d = normalized_date.split('-')
+    try:
+        datetime.datetime(int(y), int(m), int(d))
+
+    except ValueError as exc:
+        raise ValueError('Inputted date is invalid.') from exc
+
+    return normalized_date
