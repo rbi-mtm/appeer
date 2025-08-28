@@ -369,10 +369,15 @@ class Parser_RSC_ANY_txt(Parser,
         # and the superscript -> affiliation map
         #
 
-        _affiliations = [
-            [sup_aff_map[sup] for sup in author_sup]
-            for author_sup in author_sups
-            ]
+        try:
+
+            _affiliations = [
+                [sup_aff_map[sup] for sup in author_sup]
+                for author_sup in author_sups
+                ]
+
+        except KeyError:
+            return None
 
         #
         # Clean up emails and new lines from affiliations
