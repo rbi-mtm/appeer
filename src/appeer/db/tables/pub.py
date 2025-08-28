@@ -497,6 +497,136 @@ class Pub(Table,
 
         return journal_summary
 
+    def filter_pjt(self,
+                   get_title=False,
+                   get_publication_type=False,
+                   get_no_of_authors=False,
+                   get_affiliations=False,
+                   **kwargs):
+        """
+        Filter the ``pub`` table and retrieve the results
+
+        The acceptable formats for received/accepted/published dates are:
+
+            (1) YYYY
+            (2) YYYY-MM
+            (3) YYYY-MM-DD
+
+        The results are ordered by the following in ascending order:
+
+            (1) Publisher
+            (2) Journal
+            (3) Received date
+            (4) Accepted date
+
+        Parameters
+        ----------
+        get_titles : bool
+            Whether to include titles of the filtered entries to the result;
+                False by default
+        get_publication_type : bool
+            Include publication types of the filtered entries;
+                False by default
+        get_no_of_author : bool
+            Include publication_types of the filtered entries to the result;
+                False by default
+        get_affiliations : bool
+            Include affiliations of the filtered entries to the result;
+                False by default
+
+        Keyword Arguments
+        -----------------
+        normalized_publisher : list of str
+            Normalized publisher name(s)
+        normalized_journal : list of str
+            Normalized journal name(s)
+        min_received : str
+            Earliest date of publication reception
+        max_received : str
+            Latest date of publication reception
+        min_accepted : str
+            Earliest date of publication acceptance
+        max_accepted : str
+            Latest date of publication acceptance
+        min_published : str
+            Earliest date of publication
+        max_published : str
+            Latest date of publication
+        publication_types : str #TODO
+            List of str; not yet implemented, left as placeholder
+
+        Returns
+        -------
+        filtered_entries : list of appeer.db.tables.pub.FilteredPub
+            Entries satisfying the inputted filters;
+                empty list if no entries satisfying the filters are found
+
+        Raises
+        ------
+        ValueError
+            In the case of invalid filters
+
+        """
+
+        self._sanity_check()
+
+        try:
+            add_2_query, args_query = self._prepare_filters(**kwargs)
+
+        except ValueError as exc:
+            raise ValueError('An invalid filter was passed.') from exc
+
+        query = """
+
+                SELECT doi,
+                normalized_publisher,
+                normalized_journal,
+                normalized_received,
+                normalized_accepted,
+                normalized_published,
+                CAST(JULIANDAY(normalized_accepted) - JULIANDAY(normalized_received) as INT),
+                CAST(JULIANDAY(normalized_published) - JULIANDAY(normalized_received) as INT),
+                CAST(JULIANDAY(normalized_published) - JULIANDAY(normalized_accepted) as INT)"""
+
+        if get_title:
+            query += ',\ntitle'
+        else:
+            query += ',\nNULL'
+
+        if get_publication_type:
+            query += ',\npublication_type'
+        else:
+            query += ',\nNULL'
+
+        if get_no_of_authors:
+            query += ',\nno_of_authors'
+        else:
+            query += ',\nNULL'
+
+        if get_affiliations:
+            query += ',\naffiliations'
+        else:
+            query += ',\nNULL'
+
+        query += '\nFROM pub\n'
+
+        query += add_2_query
+
+        query += """
+                ORDER BY normalized_publisher,
+                normalized_journal,
+                normalized_received,
+                normalized_accepted
+                """
+
+        self._cur.execute(query, args_query)
+
+        filtered_pubs = list(
+                map(FilteredPub._make, self._cur.fetchall())
+                )
+
+        return filtered_pubs
+
     def _prepare_filters(self, **kwargs): #pylint: disable=too-many-statements, too-many-branches
         """
         Used by ``self.filter_pjt()`` to build a dict with default values
