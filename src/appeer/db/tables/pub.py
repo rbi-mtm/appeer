@@ -9,6 +9,9 @@ from appeer.db.tables.table import Table
 from appeer.db.tables.registered_tables import get_registered_tables
 
 from appeer.parse.default_metadata import default_metadata
+from appeer.parse.parsers import date_utils
+
+import appeer.general.utils as _utils
 
 JournalSummary = namedtuple('JournalSummary',
         ['name',
@@ -20,6 +23,23 @@ JournalSummary = namedtuple('JournalSummary',
         'max_accepted',
         'min_published',
         'max_published']
+        )
+
+FilteredPub = namedtuple(typename='FilteredPub',
+        field_names=['doi',
+        'publisher',
+        'journal',
+        'normalized_received',
+        'normalized_accepted',
+        'normalized_published',
+        'received_2_accepted',
+        'received_2_published',
+        'accepted_2_published',
+        'title',
+        'publication_type',
+        'no_of_authors',
+        'affiliations'],
+        defaults=[None, None, None, None]
         )
 
 class Pub(Table,
@@ -476,3 +496,193 @@ class Pub(Table,
                 )[0]
 
         return journal_summary
+
+    def _prepare_filters(self, **kwargs): #pylint: disable=too-many-statements, too-many-branches
+        """
+        Used by ``self.filter_pjt()`` to build a dict with default values
+
+        The keyword arguments are the same as in ``self.filter_pjt()``
+
+        Returns
+        -------
+        where_query : str
+            String to be added to the filter_pjt() query
+        args_query : list
+            Arguments to pass to the filter_pjt() query
+
+        Raises
+        ------
+        ValueError
+            An error if an invalid data type is passed to filter_pjt()
+
+        """
+
+        add_2_query = ''
+        args_query = []
+
+        where_or_and = '\nWHERE'
+
+        # Publishers filter
+        try:
+
+            if not _utils.is_list_of_str(kwargs['normalized_publisher']):
+                raise ValueError('Invalid publishers filter; must be a (list of) string(s).')
+
+            if isinstance(kwargs['normalized_publisher'], str):
+                kwargs['normalized_publisher'] = [kwargs['normalized_publisher']]
+
+            question_marks = ", ".join(['?'] * len(kwargs['normalized_publisher']))
+
+            add_2_query += f'{where_or_and} normalized_publisher IN ({question_marks})'
+            args_query.extend(kwargs['normalized_publisher'])
+
+            where_or_and = '\nAND'
+
+        except KeyError:
+            pass
+
+        # Journals filter
+        try:
+
+            if not _utils.is_list_of_str(kwargs['normalized_journal']):
+                raise ValueError('Invalid journals filter; must be a (list of) string(s).')
+
+            if isinstance(kwargs['normalized_journal'], str):
+                kwargs['normalized_journal'] = [kwargs['normalized_journal']]
+
+            question_marks = ", ".join(['?'] * len(kwargs['normalized_journal']))
+
+            add_2_query += f'{where_or_and} normalized_journal IN ({question_marks})'
+            args_query.extend(kwargs['normalized_journal'])
+
+            where_or_and = '\nAND'
+
+        except KeyError:
+            pass
+
+        # Minimum received date filter
+        try:
+
+            try:
+
+                normalized_date = date_utils.normalize_date_2iso(kwargs['min_received'])
+
+                add_2_query += f'{where_or_and} normalized_received >= ?'
+                args_query.extend([normalized_date])
+
+                where_or_and = '\nAND'
+
+            except ValueError as exc:
+                raise ValueError('Invalid minimum received date.') from exc
+
+        except KeyError:
+            pass
+
+        # Maximum received date filter
+        try:
+
+            try:
+
+                normalized_date = date_utils.normalize_date_2iso(kwargs['max_received'])
+
+                add_2_query += f'{where_or_and} normalized_received <= ?'
+                args_query.extend([normalized_date])
+
+                where_or_and = '\nAND'
+
+            except ValueError as exc:
+                raise ValueError('Invalid maximum received date.') from exc
+
+        except KeyError:
+            pass
+
+        # Minimum accepted date filter
+        try:
+
+            try:
+
+                normalized_date = date_utils.normalize_date_2iso(kwargs['min_accepted'])
+
+                add_2_query += f'{where_or_and} normalized_accepted >= ?'
+                args_query.extend([normalized_date])
+
+                where_or_and = '\nAND'
+
+            except ValueError as exc:
+                raise ValueError('Invalid minimum accepted date.') from exc
+
+        except KeyError:
+            pass
+
+        # Maximum accepted date filter
+        try:
+
+            try:
+
+                normalized_date = date_utils.normalize_date_2iso(kwargs['max_accepted'])
+
+                add_2_query += f'{where_or_and} normalized_accepted <= ?'
+                args_query.extend([normalized_date])
+
+                where_or_and = '\nAND'
+
+            except ValueError as exc:
+                raise ValueError('Invalid maximum accepted date.') from exc
+
+        except KeyError:
+            pass
+
+        # Minimum published date filter
+        try:
+
+            try:
+
+                normalized_date = date_utils.normalize_date_2iso(kwargs['min_published'])
+
+                add_2_query += f'{where_or_and} normalized_published >= ?'
+                args_query.extend([normalized_date])
+
+                where_or_and = '\nAND'
+
+            except ValueError as exc:
+                raise ValueError('Invalid minimum published date.') from exc
+
+        except KeyError:
+            pass
+
+        # Maximum published date filter
+        try:
+
+            try:
+
+                normalized_date = date_utils.normalize_date_2iso(kwargs['max_published'])
+
+                add_2_query += f'{where_or_and} normalized_published <= ?'
+                args_query.extend([normalized_date])
+
+                where_or_and = '\nAND'
+
+            except ValueError as exc:
+                raise ValueError('Invalid maximum published date.') from exc
+
+        except KeyError:
+            pass
+
+        # Publication type filter (TODO, unstable)
+        try:
+
+            if not _utils.is_list_of_str(kwargs['publication_type']):
+                raise ValueError('Invalid publication type filter; must be a (list of) string(s).')
+
+            if isinstance(kwargs['publication_type'], str):
+                kwargs['publication_type'] = [kwargs['publication_type']]
+
+            question_marks = ", ".join(['?'] * len(kwargs['publication_type']))
+
+            add_2_query += f'{where_or_and} publication_type IN ({question_marks})'
+            args_query.extend(kwargs['publication_type'])
+
+        except KeyError:
+            pass
+
+        return add_2_query, args_query
