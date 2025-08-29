@@ -552,8 +552,8 @@ class Pub(Table,
             Earliest date of publication
         max_published : str
             Latest date of publication
-        publication_types : str #TODO
-            List of str; not yet implemented, left as placeholder
+        publication_types : str
+            List of str; note that publication types are experimental
 
         Returns
         -------
