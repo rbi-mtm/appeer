@@ -521,14 +521,14 @@ class Pub(Table,
 
         Parameters
         ----------
-        get_titles : bool
-            Whether to include titles of the filtered entries to the result;
+        get_title : bool
+            Include titles of the filtered entries to the result;
                 False by default
         get_publication_type : bool
             Include publication types of the filtered entries;
                 False by default
-        get_no_of_author : bool
-            Include publication_types of the filtered entries to the result;
+        get_no_of_authors : bool
+            Include number of authors of the filtered entries to the result;
                 False by default
         get_affiliations : bool
             Include affiliations of the filtered entries to the result;
