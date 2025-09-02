@@ -14,6 +14,8 @@ from difflib import SequenceMatcher
 
 import click
 
+from appeer.db.tables.pub import FilteredPub as _FilteredPub
+
 def load_json(json_filename):
     """
     Load a JSON file to a list of dictionaries
@@ -804,3 +806,26 @@ def delete_directory_content(directory_path):
 
     else:
         click.echo(f'Could not delete all files in {directory_path}')
+
+def check_FilteredPub_type(filtered_pubs):
+    """
+    Checks whether ``filtered_pubs`` is a list of ``FilteredPub`` instances
+
+    Parameters
+    ----------
+    filtered_pubs : list of appeer.db.tables.pub.FilteredPub
+        Publications obtained from ``pub.db`` searches
+
+    Raises
+    ------
+    ValueError
+        If ``filtered_pubs`` is not a list of ``FilteredPub``
+
+    """
+
+    if not isinstance(filtered_pubs, list):
+        raise ValueError('filtered_pubs must be a list of appeer.db.tables.pub.FilteredPub')
+
+    if filtered_pubs and not all(isinstance(publication, _FilteredPub)
+                for publication in filtered_pubs):
+        raise ValueError('filtered_pubs must be a list of appeer.db.tables.pub.FilteredPub')
