@@ -1,6 +1,10 @@
 """Filter, plot, analyze results from pub.db"""
 
+import appeer.general.utils as _utils
+
 from appeer.db.pub_db import PubDB
+
+from appeer.pub.analyzer import PubAnalyzer
 
 class PubReSearcher:
     """
@@ -8,15 +12,32 @@ class PubReSearcher:
 
     """
 
-    def __init__(self):
+    def __init__(self, filtered_pubs=None):
         """
         Connects to the pub.db database
+
+        Parameters
+        ----------
+        filtered_pubs : None | list of appeer.db.tables.pub.FilteredPub
+            Publications found through searching the ``pub.db`` database;
+                normally they are found using ``self.search_pub``,
+                but for now leave this parameter,
+                so the results can be read from a (JSON) file
 
         """
 
         self._pub = PubDB().pub
 
-        self.filtered_pubs = []
+        if filtered_pubs is None:
+            filtered_pubs = []
+
+        else:
+            _utils.check_FilteredPub_type(filtered_pubs)
+
+        self.filtered_pubs = filtered_pubs
+        self._search_performed = bool(self.filtered_pubs)
+
+        self.analyzer = PubAnalyzer(filtered_pubs=self.filtered_pubs)
 
 
     def search_pub(self,
@@ -92,3 +113,6 @@ class PubReSearcher:
                 get_no_of_authors=get_no_of_authors,
                 get_affiliations=get_affiliations,
                 **kwargs)
+
+        self._search_performed = True
+        self.analyzer.load_data(filtered_pubs=self.filtered_pubs)
