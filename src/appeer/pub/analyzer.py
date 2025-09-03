@@ -2,6 +2,8 @@
 
 import appeer.general.utils as _utils
 
+from appeer.parse.parsers import date_utils as _date_utils
+
 class PubAnalyzer:
     """
     Analyze results (usually) obtained using PubReSearcher
@@ -42,3 +44,67 @@ class PubAnalyzer:
             filtered_pubs = []
 
         self._filtered_pubs = filtered_pubs
+
+
+    @property
+    def basic_search_results(self):
+        """
+        Get a basic summary of the search results
+
+        Returns
+        -------
+        _basic_search_results : dict
+            Dictionary of basic search results
+
+        """
+
+        if self._filtered_pubs:
+
+            no_of_pubs = len(self._filtered_pubs)
+
+            publishers = set(pub.publisher for pub in
+                              self._filtered_pubs)
+
+            journals = set(pub.journal for pub in
+                              self._filtered_pubs)
+
+
+            _basic_search_results = {
+                    'no_of_pubs': no_of_pubs,
+                    'publishers': publishers,
+                    'no_of_publishers': len(publishers),
+                    'journals': journals,
+                    'no_of_journals': len(journals),
+                    }
+
+
+            _basic_search_results['min_received'] =\
+                    _date_utils.earliest_date([pub.normalized_received
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['max_received'] =\
+                    _date_utils.latest_date([pub.normalized_received
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['min_accepted'] =\
+                    _date_utils.earliest_date([pub.normalized_accepted
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['max_accepted'] =\
+                    _date_utils.latest_date([pub.normalized_accepted
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['min_published'] =\
+                    _date_utils.earliest_date([pub.normalized_published
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['max_published'] =\
+                    _date_utils.latest_date([pub.normalized_published
+                    for pub in self._filtered_pubs])
+
+
+        else:
+            _basic_search_results = {}
+
+
+        return _basic_search_results
