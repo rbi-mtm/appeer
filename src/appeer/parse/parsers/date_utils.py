@@ -25,6 +25,8 @@ The normalize_* functions transform the date to the ISO format:
 import re
 import datetime
 
+from appeer.general import utils as _utils
+
 def _d_regex():
     """
     A regex matching (01-31) with an optional preceeding 0 and optional suffix
@@ -306,3 +308,53 @@ def normalize_date_2iso(date):
         raise ValueError('Inputted date is invalid.') from exc
 
     return normalized_date
+
+def earliest_date(date_list):
+    """
+    Returns the earliest date from a ``date_list``.
+
+    The ``date_list`` should be list of strings of dates in ISO format,
+        e.g. ['2024-01-01', '1993-02-07']
+
+    The earliest date is returned as a string in ISO format
+
+    Returns
+    -------
+    _earliest_date : str
+        The earliest date in ``date_list``
+
+    """
+
+    if not _utils.is_list_of_str(date_list):
+        raise ValueError('date_list must be a list of strings')
+
+    min_date = min(datetime.date.fromisoformat(date) for date in date_list)
+
+    _earliest_date = datetime.date.isoformat(min_date)
+
+    return _earliest_date
+
+def latest_date(date_list):
+    """
+    Returns the latest date from a ``date_list``.
+
+    The ``date_list`` should be list of strings of dates in ISO format,
+        e.g. ['2024-01-01', '1993-02-07']
+
+    The latest date is returned as a string in ISO format
+
+    Returns
+    -------
+    _latest_date : str
+        The latest date in ``date_list``
+
+    """
+
+    if not _utils.is_list_of_str(date_list):
+        raise ValueError('date_list must be a list of strings')
+
+    max_date = max(datetime.date.fromisoformat(date) for date in date_list)
+
+    _latest_date = datetime.date.isoformat(max_date)
+
+    return _latest_date
