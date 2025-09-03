@@ -159,6 +159,8 @@ def pub_search_cli(**kwargs):
                 get_affiliations=kwargs['get_affiliations'],
                 **clean_dict)
 
+        click.echo(researcher.search_summary)
+
     except ValueError as exc:
         click.echo(f'Search failed. Most likely, an invalid filter was passed. Possible cause: {exc.__cause__}')
 
