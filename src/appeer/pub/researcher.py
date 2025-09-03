@@ -1,6 +1,7 @@
 """Filter, plot, analyze results from pub.db"""
 
 import appeer.general.utils as _utils
+import appeer.general.log as _log
 
 from appeer.db.pub_db import PubDB
 
@@ -116,3 +117,30 @@ class PubReSearcher:
 
         self._search_performed = True
         self.analyzer.load_data(filtered_pubs=self.filtered_pubs)
+
+
+    @property
+    def search_summary(self):
+        """
+        A short summary of the contents of the ``self.filtered_pubs`` attribute
+
+        Returns
+        -------
+        report : str
+            A short summary of the contents of ``self.filtered_pubs``
+
+        """
+
+        if not self._search_performed:
+            report = 'No searches were yet performed. To perform a search, use the PubReSearcher().search_pub() method.'
+
+        else:
+
+            if self.filtered_pubs:
+                report = _log.boxed_message('PubReSearcher Summary')
+                report += '\nTODO'
+
+            else:
+                report = 'No publications satisfy the inputted criteria.'
+
+        return report
