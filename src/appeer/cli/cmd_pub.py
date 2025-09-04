@@ -136,7 +136,10 @@ def pub_search_cli(**kwargs):
 
         if value:
 
-            if key in ('publisher', 'journal', 'publication_type'):
+            if key in ('publisher', 'journal'):
+                clean_dict[f'normalized_{key}'] = list(value)
+
+            elif key == 'publication_type':
                 clean_dict[key] = list(value)
 
             elif key in ('min_received', 'max_received',
