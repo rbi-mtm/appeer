@@ -23,7 +23,8 @@ dependencies = [
     'platformdirs',
     'click',
     'beautifulsoup4',
-    'lxml'
+    'lxml',
+	'numpy'
 ]
 
 [project.scripts]
