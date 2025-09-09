@@ -2,46 +2,10 @@
 
 import textwrap
 
-from collections import defaultdict
-
 from appeer.general import utils as _utils
 from appeer.general import log as _log
 
 from appeer.db.pub_db import PubDB
-
-def group_by_alphabet(entry_list):
-    """
-    Groups a list of strings by alphabet
-
-    E.g., given a list:
-
-        entry_list = ['Alpha1', 'alpha2', 'beta1', 'Beta2']
-
-    The result is of format:
-
-        alphabet_dict = {
-            'A': ['Alpha1', 'alpha2'],
-            'B': ['beta1', 'Beta2']
-            }
-
-    Parameters
-    ----------
-    entry_list : list of str
-        List of strings to be grouped by alphabet
-
-    Returns
-    -------
-    alphabet_dict : defaultdict(list)
-        Dictionary of grouped strings grouped by alphabet
-
-    """
-
-    alphabet_dict = defaultdict(list)
-
-    for entry in entry_list:
-        alphabet_dict[entry[0].upper()].append(entry)
-
-    return alphabet_dict
 
 def unique_publishers_report():
     """
@@ -61,7 +25,7 @@ def unique_publishers_report():
     if not unique_publishers:
         return 'No publishers found.'
 
-    grouped_publishers = group_by_alphabet(unique_publishers)
+    grouped_publishers = _utils.group_by_alphabet(unique_publishers)
 
     report = ''
 
@@ -102,7 +66,7 @@ def unique_journals_report(publisher):
     if not unique_journals:
         return f'No journals found for publisher "{publisher}".'
 
-    grouped_journals = group_by_alphabet(unique_journals)
+    grouped_journals = _utils.group_by_alphabet(unique_journals)
 
     report = ''
 

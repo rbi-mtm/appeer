@@ -11,6 +11,7 @@ from shutil import make_archive, rmtree
 from datetime import datetime
 from random import randint
 from difflib import SequenceMatcher
+from collections import defaultdict
 
 import click
 
@@ -356,6 +357,40 @@ def convert_time_string(time_string):
     datetime_object = datetime.strptime(time_string, '%Y%m%d-%H%M%S')
 
     return datetime_object
+
+def group_by_alphabet(entry_list):
+    """
+    Groups a list of strings by alphabet
+
+    E.g., given a list:
+
+        entry_list = ['Alpha1', 'alpha2', 'beta1', 'Beta2']
+
+    The result is of format:
+
+        alphabet_dict = {
+            'A': ['Alpha1', 'alpha2'],
+            'B': ['beta1', 'Beta2']
+            }
+
+    Parameters
+    ----------
+    entry_list : list of str
+        List of strings to be grouped by alphabet
+
+    Returns
+    -------
+    alphabet_dict : defaultdict(list)
+        Dictionary of grouped strings grouped by alphabet
+
+    """
+
+    alphabet_dict = defaultdict(list)
+
+    for entry in entry_list:
+        alphabet_dict[entry[0].upper()].append(entry)
+
+    return alphabet_dict
 
 def human_datetime(time_string):
     """
