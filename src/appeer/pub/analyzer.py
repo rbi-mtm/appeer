@@ -1,5 +1,9 @@
 """Analyze results obtained using PubReSearcher"""
 
+from collections import Counter
+
+import numpy as np
+
 import appeer.general.utils as _utils
 
 from appeer.parse.parsers import date_utils as _date_utils
@@ -62,12 +66,8 @@ class PubAnalyzer:
 
             no_of_pubs = len(self._filtered_pubs)
 
-            publishers = set(pub.publisher for pub in
-                              self._filtered_pubs)
-
-            journals = set(pub.journal for pub in
-                              self._filtered_pubs)
-
+            publishers = Counter(pub.publisher for pub in self._filtered_pubs)
+            journals = Counter(pub.journal for pub in self._filtered_pubs)
 
             _basic_search_results = {
                     'no_of_pubs': no_of_pubs,
@@ -102,6 +102,18 @@ class PubAnalyzer:
                     _date_utils.latest_date([pub.normalized_published
                     for pub in self._filtered_pubs])
 
+
+            _basic_search_results['average_ra'] =\
+                    np.average([pub.received_2_accepted
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['average_rp'] =\
+                    np.average([pub.received_2_published
+                    for pub in self._filtered_pubs])
+
+            _basic_search_results['average_ap'] =\
+                    np.average([pub.accepted_2_published
+                    for pub in self._filtered_pubs])
 
         else:
             _basic_search_results = {}
