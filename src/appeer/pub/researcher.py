@@ -137,8 +137,56 @@ class PubReSearcher:
         else:
 
             if self.filtered_pubs:
-                report = _log.boxed_message('PubReSearcher Summary')
-                report += '\nTODO'
+
+                align = len(max([
+                    'no_of_publications',
+                    'no_of_publishers',
+                    'no_of_journals',
+                    'min_received',
+                    'max_received',
+                    'min_accepted',
+                    'max_accepted',
+                    'min_published',
+                    'max_published',
+                    'average_ra',
+                    'average_rp',
+                    'average_ap'], key=len)) + 2
+
+                b = self.analyzer.basic_search_results
+
+                report = '\nSearch Summary\n'
+                report += len('Search Summary') * '–' + '\n'
+
+                report += f'{"no_of_publications":<{align}} {b["no_of_pubs"]}' + '\n'
+                report += f'{"no_of_publishers":<{align}} {b["no_of_publishers"]}' + '\n'
+                report += f'{"no_of_journals":<{align}} {b["no_of_journals"]}' + '\n'
+                report += f'{"min_received":<{align}} {b["min_received"]}' + '\n'
+                report += f'{"max_received":<{align}} {b["max_received"]}' + '\n'
+                report += f'{"min_accepted":<{align}} {b["min_accepted"]}' + '\n'
+                report += f'{"max_accepted":<{align}} {b["max_accepted"]}' + '\n'
+                report += f'{"min_published":<{align}} {b["min_published"]}' + '\n'
+                report += f'{"max_published":<{align}} {b["max_published"]}' + '\n'
+                report += f'{"average_ra":<{align}} {b["average_ra"]:.2f}' + '\n'
+                report += f'{"average_rp":<{align}} {b["average_rp"]:.2f}' + '\n'
+                report += f'{"average_ap":<{align}} {b["average_ap"]:.2f}' + '\n\n'
+
+
+                align = len(max(b['publishers'].keys(), key=len)) + 2
+
+                report += 'Publishers (no. of publications)' + '\n'
+                report += len('Publishers (no. of publications)') * '–' + '\n'
+
+                for publisher, hits in b['publishers'].items():
+                    report += f'{publisher:<{align}} ({hits})' + '\n'
+
+
+                align = len(max(b['journals'].keys(), key=len)) + 2
+
+                report += '\nJournals (no. of publications)' + '\n'
+                report += len('Journals (no. of publications)') * '–' + '\n'
+
+                for journal, hits in b['journals'].items():
+                    report += f'{journal:<{align}} ({hits})' + '\n'
 
             else:
                 report = 'No publications satisfy the inputted criteria.'
