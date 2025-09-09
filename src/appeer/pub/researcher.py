@@ -27,7 +27,7 @@ class PubReSearcher:
 
         """
 
-        self._pub = PubDB().pub
+        self._pub = PubDB(read_only=True).pub
 
         if filtered_pubs is None:
             filtered_pubs = []
