@@ -16,11 +16,11 @@ from appeer.commit import commit_scripts
 
             appeer commit -x
 
-            appeer commit -E -s "Parse job description" -o
+            appeer commit -E -s "Commit job description" -o
 
             appeer commit -P parse_label1 parse_label2
 
-    (*) Parsing can be performed in one of 3 modes, defined by the (-A, -E, -P flags):
+    (*) Commiting can be performed in one of 3 modes, defined by the (-A, -E, -P flags):
 
         (1) Mode A [DEFAULT]
 
@@ -30,13 +30,13 @@ from appeer.commit import commit_scripts
 
         (2) Mode E
 
-            Parses all publications found in the parse jobs database, regardless of whether they were previously committed
+            Commits all publications found in the parse jobs database, regardless of whether they were previously committed
 
                 appeer parse -E
 
         (3) Mode P
 
-            Parses publications from a list of parse job labels
+            Commits publications from a list of parse job labels
 
                 appeer parse -S parse_label1 parse_label2
 
@@ -58,7 +58,7 @@ from appeer.commit import commit_scripts
 @click.option('-o', '--overwrite',
         is_flag=True, default=False,
         help="Overwrite existing entries")
-@click.option('-x', '--no_scrape_mark',
+@click.option('-x', '--no_parse_mark',
         is_flag=True, default=False,
         help="Do not mark parse jobs as committed")
 @click.option('-s', '--description', 'description',
