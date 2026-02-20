@@ -64,6 +64,8 @@ class CommitAction(Action, action_type='commit'): #pylint:disable=too-many-insta
         Type of publication
     no_of_authors : int
         Number of publication authors
+    author_names : list of str
+        Author names
     affiliations : list of str
         Author affiliations
     received : str

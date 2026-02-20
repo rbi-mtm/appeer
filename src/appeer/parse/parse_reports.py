@@ -309,35 +309,42 @@ def parsing_report(parser):
 
         meta_brackets = f'[{meta.upper()}]'
 
-        if meta != 'affiliations':
+        if meta not in ['author_names', 'affiliations']:
             report += f'{meta_brackets:<{align}} {getattr(parser, meta)}\n'
 
-    if 'affiliations' in parser.metadata_list:
+    for meta in ['author_names', 'affiliations']:
 
-        report += f'\n{"[AFFILIATIONS]":<{align}} '
+        if meta in parser.metadata_list:
 
-        if parser.affiliations:
+            report += f'\n{f"[{meta.upper()}]":<{align}} '
 
-            align = len(str(len(parser.affiliations))) + 3
+            meta_values = getattr(parser, meta)
 
-            report += '\n\n'
+            if meta_values:
 
-            for i, aff_list in enumerate(parser.affiliations):
+                align = len(str(len(meta_values))) + 3
 
-                if len(aff_list) > 1:
-                    suff = ascii_lowercase[:len(aff_list)]
+                report += '\n\n'
 
-                else:
-                    suff = ' '
+                for i, meta_list in enumerate(meta_values):
 
-                for j, aff in enumerate(aff_list):
+                    if meta == 'author_names':
+                        meta_list = [meta_list]
 
-                    aff_string = f'({i+1}{suff[j].strip()})'
+                    if len(meta_list) > 1:
+                        suff = ascii_lowercase[:len(meta_list)]
 
-                    report += f'{aff_string:<{align}} {aff}\n'
+                    else:
+                        suff = ' '
 
-        else:
-            report += 'None\n'
+                    for j, m in enumerate(meta_list):
+
+                        meta_string = f'({i+1}{suff[j].strip()})'
+
+                        report += f'{meta_string:<{align}} {m}\n'
+
+            else:
+                report += 'None\n'
 
     return report
 

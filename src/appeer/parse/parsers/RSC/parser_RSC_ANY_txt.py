@@ -241,18 +241,47 @@ class Parser_RSC_ANY_txt(Parser,
 
         """
 
-        authors = soup_utils.get_meta_content(
+        #
+        # If the author names cannot be obtained, immediately fail
+        #
+
+        _no_of_authors = None
+
+        if not self.author_names:
+            return None
+
+        _no_of_authors = len(self.author_names)
+
+        return _no_of_authors
+
+    @functools.cached_property
+    def author_names(self): #pylint:disable=too-many-branches
+        """
+        Get the author names
+
+        Returns
+        -------
+        _author_names : list of str | None
+            List of author names;
+                each entry corresponds to the name of a single author
+        
+        """
+
+        _author_names = soup_utils.get_meta_content(
                 soup=self._input_data,
                 attr_value='citation_author',
                 attr_key='name'
                 )
 
-        if isinstance(authors, str):
-            authors = [authors]
+        if _author_names:
 
-        _no_of_authors = len(authors)
+            if isinstance(_author_names, str):
+                _author_names = [_author_names]
 
-        return _no_of_authors
+            _author_names = [name.replace('\xa0', ' ')
+                             for name in _author_names]
+
+        return _author_names
 
     @functools.cached_property
     def affiliations(self): #pylint:disable=too-many-branches

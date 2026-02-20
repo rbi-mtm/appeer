@@ -237,22 +237,47 @@ class Parser_NAT_ANY_txt(Parser,
 
         """
 
+        #
+        # If the author names cannot be obtained, immediately fail
+        #
+
         _no_of_authors = None
 
-        authors = soup_utils.get_meta_content(
+        if not self.author_names:
+            return None
+
+        _no_of_authors = len(self.author_names)
+
+        return _no_of_authors
+
+    @functools.cached_property
+    def author_names(self): #pylint:disable=too-many-branches
+        """
+        Get the author names
+
+        Returns
+        -------
+        _author_names : list of str | None
+            List of author names;
+                each entry corresponds to the name of a single author
+        
+        """
+
+        _author_names = soup_utils.get_meta_content(
                 soup=self._input_data,
                 attr_value='citation_author',
                 attr_key='name'
                 )
 
-        if authors:
+        if _author_names:
 
-            if isinstance(authors, str):
-                authors = [authors]
+            if isinstance(_author_names, str):
+                _author_names = [_author_names]
 
-            _no_of_authors = len(authors)
+            _author_names = [name.replace('\xa0', ' ')
+                             for name in _author_names]
 
-        return _no_of_authors
+        return _author_names
 
     @functools.cached_property
     def affiliations(self):

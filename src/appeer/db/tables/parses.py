@@ -102,6 +102,7 @@ class Parses(ActionTable,
             'title': None,
             'publication_type': None,
             'no_of_authors': None,
+            'author_names': None,
             'affiliations': None,
             'received': None,
             'accepted': None,
@@ -137,7 +138,7 @@ class Parses(ActionTable,
             ('date',
             'doi', 'publisher', 'journal',
             'title', 'publication_type',
-            'no_of_authors', 'affiliations',
+            'no_of_authors', 'author_names', 'affiliations',
             'received', 'accepted', 'published',
             'normalized_received',
             'normalized_accepted',
@@ -249,6 +250,23 @@ class Parses(ActionTable,
                 self._cur.execute("""
                 UPDATE parses SET no_of_authors = ? WHERE label = ? AND action_index = ?
                 """, (new_value, label, action_index))
+
+                self._con.commit()
+
+            case 'author_names':
+
+                if not isinstance(new_value, list):
+                    raise ValueError(f'Cannot update the "parses" table. Invalid author_names={new_value} given; must be a list')
+
+                if not all(_utils.is_list_of_str(aff) for aff in new_value):
+                    raise ValueError(f'Cannot update the "parses" table. Invalid author_names={new_value} given; each entry must be list of strings')
+
+                new_value = [[name] for name in new_value]
+                authors_str = _utils.aff_list2str(new_value)
+
+                self._cur.execute("""
+                UPDATE parses SET author_names = ? WHERE label = ? AND action_index = ?
+                """, (authors_str, label, action_index))
 
                 self._con.commit()
 

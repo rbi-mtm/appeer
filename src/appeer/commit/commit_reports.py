@@ -204,35 +204,39 @@ def commit_action_start(action):
 
         meta_brackets = f'[{meta.upper()}]'
 
-        if meta != 'affiliations':
+        if meta not in ['author_names', 'affiliations']:
             report += f'{meta_brackets:<{align}} {getattr(action, meta)}\n'
 
-    report += f'\n{"[AFFILIATIONS]":<{align}} '
+    for meta in ['author_names', 'affiliations']:
 
-    if action.affiliations:
+        report += f'\n{f"[{meta.upper()}]":<{align}} '
 
-        affiliations = _utils.aff_str2list(action.affiliations)
+        print(getattr(action,meta))
 
-        align = len(str(len(affiliations))) + 3
+        meta_values = _utils.aff_str2list(getattr(action, meta))
 
-        report += '\n\n'
+        if meta_values:
 
-        for i, aff_list in enumerate(affiliations):
+            align = len(str(len(meta_values))) + 3
 
-            if len(aff_list) > 1:
-                suff = ascii_lowercase[:len(aff_list)]
+            report += '\n\n'
 
-            else:
-                suff = ' '
+            for i, meta_list in enumerate(meta_values):
 
-            for j, aff in enumerate(aff_list):
+                if len(meta_list) > 1:
+                    suff = ascii_lowercase[:len(meta_list)]
 
-                aff_string = f'({i+1}{suff[j].strip()})'
+                else:
+                    suff = ' '
 
-                report += f'{aff_string:<{align}} {aff}\n'
+                for j, m in enumerate(meta_list):
 
-    else:
-        report += 'None\n'
+                    meta_string = f'({i+1}{suff[j].strip()})'
+
+                    report += f'{meta_string:<{align}} {m}\n'
+
+        else:
+            report += 'None\n'
 
     return report
 

@@ -38,8 +38,9 @@ FilteredPub = namedtuple(typename='FilteredPub',
         'title',
         'publication_type',
         'no_of_authors',
+        'author_names',
         'affiliations'],
-        defaults=[None, None, None, None]
+        defaults=[None, None, None, None, None]
         )
 
 class Pub(Table,
@@ -501,6 +502,7 @@ class Pub(Table,
                    get_title=False,
                    get_publication_type=False,
                    get_no_of_authors=False,
+                   get_author_names=False,
                    get_affiliations=False,
                    **kwargs):
         """
@@ -529,6 +531,9 @@ class Pub(Table,
                 False by default
         get_no_of_authors : bool
             Include number of authors of the filtered entries to the result;
+                False by default
+        get_author_names : bool
+            Include author names of the filtered entries to the result;
                 False by default
         get_affiliations : bool
             Include affiliations of the filtered entries to the result;
@@ -600,6 +605,11 @@ class Pub(Table,
 
         if get_no_of_authors:
             query += ',\nno_of_authors'
+        else:
+            query += ',\nNULL'
+
+        if get_author_names:
+            query += ',\nauthor_names'
         else:
             query += ',\nNULL'
 
