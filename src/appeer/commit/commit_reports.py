@@ -211,8 +211,6 @@ def commit_action_start(action):
 
         report += f'\n{f"[{meta.upper()}]":<{align}} '
 
-        print(getattr(action,meta))
-
         meta_values = _utils.aff_str2list(getattr(action, meta))
 
         if meta_values:
