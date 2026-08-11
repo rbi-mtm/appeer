@@ -312,7 +312,7 @@ class ParseJob(Job, job_type='parse_job'): #pylint:disable=too-many-instance-att
                         cleanup=cleanup,
                         **kwargs)
 
-        self.job_mode = 'write'
+        self._job_mode = 'write'
 
         if run_parameters['restart_mode'] == 'from_scratch':
 

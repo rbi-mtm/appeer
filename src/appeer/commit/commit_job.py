@@ -311,7 +311,7 @@ class CommitJob(Job, job_type='commit_job'): #pylint:disable=too-many-instance-a
                 self._prepare_run_parameters(restart_mode=restart_mode,
                         **kwargs)
 
-        self.job_mode = 'write'
+        self._job_mode = 'write'
 
         if run_parameters['restart_mode'] == 'from_scratch':
 

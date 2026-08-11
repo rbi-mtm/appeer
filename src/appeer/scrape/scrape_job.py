@@ -284,7 +284,7 @@ class ScrapeJob(Job, job_type='scrape_job'): #pylint:disable=too-many-instance-a
                         cleanup=cleanup,
                         **kwargs)
 
-        self.job_mode = 'write'
+        self._job_mode = 'write'
 
         if run_parameters['scrape_mode'] == 'from_scratch':
 
