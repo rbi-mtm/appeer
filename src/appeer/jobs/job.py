@@ -3,6 +3,7 @@
 import os
 import abc
 import click
+import threading
 
 from appeer.general.datadir import Datadir
 from appeer.general import utils
@@ -20,6 +21,9 @@ from appeer.commit.commit_action import CommitAction
 from appeer.scrape import scrape_reports
 from appeer.parse import parse_reports
 from appeer.commit import commit_reports
+
+
+_LOG_STOP = object()
 
 def _validate_job_label(label):
     """
@@ -126,6 +130,8 @@ class Job(abc.ABC):
         self._logger = None
 
         self._queue = None
+        self._logger_thread = None
+        self._logger_error = None
         self._db = JobsDB()
         self._log_path = None
         if self.label and self._db._db_exists: #pylint:disable=protected-access
@@ -134,7 +140,10 @@ class Job(abc.ABC):
                 self._log_path = entry.log
 
     def close(self):
-        self._db.close()
+        try:
+            self._stop_log_server()
+        finally:
+            self._db.close()
 
     def __enter__(self):
         return self
@@ -508,11 +517,51 @@ class Job(abc.ABC):
 
         """
 
-        if not self._queue:
+        if self._queue is None:
             raise ValueError('Cannot log action message; self._queue has not been initialized.')
 
         while True:
-
             message = self._queue.get()
-            self._wlog(message)
-            self._queue.task_done()
+            try:
+                if message is _LOG_STOP:
+                    return
+                self._wlog(message)
+            except Exception as error: # pylint: disable=broad-exception-caught
+                if self._logger_error is None:
+                    self._logger_error = error
+            finally:
+                self._queue.task_done()
+
+    def _start_log_server(self):
+        """Start the action logger owned by this job."""
+
+        if self._queue is None:
+            raise ValueError('Cannot start action logger; self._queue has not been initialized.')
+        if self._logger_thread is not None and self._logger_thread.is_alive():
+            raise RuntimeError('The action logger is already running.')
+
+        self._logger_error = None
+        self._logger_thread = threading.Thread(
+                target=self._log_server,
+                name=f'appeer-log-{self.label}',
+                daemon=True,
+                )
+        self._logger_thread.start()
+
+    def _stop_log_server(self):
+        """Flush and stop the action logger owned by this job."""
+
+        logger_thread = self._logger_thread
+        if logger_thread is None:
+            return
+
+        if logger_thread.is_alive():
+            self._queue.put(_LOG_STOP)
+            self._queue.join()
+            logger_thread.join()
+
+        self._logger_thread = None
+        if self._logger_error is not None:
+            error = self._logger_error
+            self._logger_error = None
+            raise RuntimeError('Failed to write the job action log.') from error

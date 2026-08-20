@@ -1,16 +1,26 @@
 """Actual offline initialize, parse, commit, and query workflow."""
 
 import json
+import threading
 from pathlib import Path
 
+import pytest
 from click.testing import CliRunner
 
 from appeer.cli import appeer_cli
 from appeer.db.jobs_db import JobsDB
 from appeer.db.pub_db import PubDB
+from appeer.parse.parse_job import ParseJob
 
 
 FIXTURES = Path(__file__).parent / 'fixtures'
+
+
+def appeer_logger_threads():
+    return [
+        thread for thread in threading.enumerate()
+        if thread.name.startswith('appeer-log-')
+    ]
 
 
 def test_cli_pipeline_commits_only_complete_successful_parses(tmp_path):
@@ -32,6 +42,7 @@ def test_cli_pipeline_commits_only_complete_successful_parses(tmp_path):
     ])
     assert parsed.exit_code == 0, parsed.output
     assert 'SQLite objects created in a thread' not in parsed.output
+    assert not appeer_logger_threads()
 
     with JobsDB() as jobs:
         actions = jobs.parses.get_actions_by_label('pipeline_parse')
@@ -45,6 +56,7 @@ def test_cli_pipeline_commits_only_complete_successful_parses(tmp_path):
         '--job_label', 'pipeline_commit',
     ])
     assert committed.exit_code == 0, committed.output
+    assert not appeer_logger_threads()
 
     with PubDB(read_only=True) as publications:
         rows = publications.pub.entries
@@ -64,3 +76,22 @@ def test_cli_pipeline_commits_only_complete_successful_parses(tmp_path):
     assert payload[0]['doi'] == '10.1038/s41598-025-92476-w'
     assert payload[0]['author_names'] == [
         'Aiping Deng', 'Fangli Xiong', 'Qiuping Ren']
+
+
+def test_parse_preparation_failure_stops_logger(monkeypatch):
+    runner = CliRunner()
+    initialized = runner.invoke(appeer_cli, ['init'], input='\n')
+    assert initialized.exit_code == 0, initialized.output
+
+    with ParseJob() as job:
+        job.new_job(label='logger_failure', mode='F')
+
+        def fail_preparation(data_source):
+            del data_source
+            raise RuntimeError('simulated preparation failure')
+
+        monkeypatch.setattr(job, '_prepare_parsing', fail_preparation)
+        with pytest.raises(RuntimeError, match='simulated preparation failure'):
+            job.add_publications(data_source=[])
+
+    assert not appeer_logger_threads()

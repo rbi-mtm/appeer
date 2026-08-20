@@ -2,7 +2,6 @@
 
 import sys
 import os
-import threading
 import queue
 import inspect
 
@@ -206,11 +205,11 @@ class ParseJob(Job, job_type='parse_job'): #pylint:disable=too-many-instance-att
         self._job_mode = 'write'
 
         self._queue = queue.Queue()
-        threading.Thread(target=self._log_server, daemon=True).start()
-
-        self._prepare_parsing(data_source=data_source)
-
-        self._queue.join()
+        self._start_log_server()
+        try:
+            self._prepare_parsing(data_source=data_source)
+        finally:
+            self._stop_log_server()
 
     def _prepare_parsing(self, data_source):
         """
@@ -326,7 +325,7 @@ class ParseJob(Job, job_type='parse_job'): #pylint:disable=too-many-instance-att
             run_parameters=run_parameters))
 
         self._queue = queue.Queue()
-        threading.Thread(target=self._log_server, daemon=True).start()
+        self._start_log_server()
 
         parsers_dir = os.path.join(
                 os.path.dirname(inspect.getfile(self.__class__)),
@@ -345,15 +344,16 @@ class ParseJob(Job, job_type='parse_job'): #pylint:disable=too-many-instance-att
                 'publisher_journals_dict': self._publisher_journals_dict
                 }
 
-        while self.job_step < self.no_of_publications:
+        try:
+            while self.job_step < self.no_of_publications:
 
-            self.run_action(_queue=self._queue,
-                    action_index=self.job_step,
-                    **action_parameters)
+                self.run_action(_queue=self._queue,
+                        action_index=self.job_step,
+                        **action_parameters)
 
-            self.job_step += 1
-
-        self._queue.join()
+                self.job_step += 1
+        finally:
+            self._stop_log_server()
 
         if all(status == 'X' for status in
                 (getattr(action, 'status') for action in self.actions)):

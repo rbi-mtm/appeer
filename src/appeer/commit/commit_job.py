@@ -2,7 +2,6 @@
 
 import sys
 import queue
-import threading
 
 from appeer.general import log as _log
 
@@ -196,11 +195,11 @@ class CommitJob(Job, job_type='commit_job'): #pylint:disable=too-many-instance-a
         self._job_mode = 'write'
 
         self._queue = queue.Queue()
-        threading.Thread(target=self._log_server, daemon=True).start()
-
-        self._prepare_committing(data_source=data_source)
-
-        self._queue.join()
+        self._start_log_server()
+        try:
+            self._prepare_committing(data_source=data_source)
+        finally:
+            self._stop_log_server()
 
     def _prepare_committing(self, data_source):
         """
@@ -326,19 +325,22 @@ class CommitJob(Job, job_type='commit_job'): #pylint:disable=too-many-instance-a
             run_parameters=run_parameters))
 
         self._queue = queue.Queue()
-        threading.Thread(target=self._log_server, daemon=True).start()
+        self._start_log_server()
 
         action_parameters = {
                 'overwrite': run_parameters['overwrite'],
                 }
 
-        while self.job_step < self.no_of_publications:
+        try:
+            while self.job_step < self.no_of_publications:
 
-            self.run_action(_queue=self._queue,
-                    action_index=self.job_step,
-                    **action_parameters)
+                self.run_action(_queue=self._queue,
+                        action_index=self.job_step,
+                        **action_parameters)
 
-            self.job_step += 1
+                self.job_step += 1
+        finally:
+            self._stop_log_server()
 
         if all(status == 'X' for status in
                 (getattr(action, 'status') for action in self.actions)):

@@ -3,7 +3,6 @@
 import sys
 import os
 import time
-import threading
 import queue
 
 from appeer.general.datadir import Datadir
@@ -299,7 +298,7 @@ class ScrapeJob(Job, job_type='scrape_job'): #pylint:disable=too-many-instance-a
             run_parameters=run_parameters))
 
         self._queue = queue.Queue()
-        threading.Thread(target=self._log_server, daemon=True).start()
+        self._start_log_server()
 
         action_parameters = {
                 'max_tries': run_parameters['max_tries'],
@@ -307,17 +306,18 @@ class ScrapeJob(Job, job_type='scrape_job'): #pylint:disable=too-many-instance-a
                 '_429_sleep_time': run_parameters['_429_sleep_time']
                 }
 
-        while self.job_step < self.no_of_publications:
+        try:
+            while self.job_step < self.no_of_publications:
 
-            self.run_action(_queue=self._queue,
-                    action_index=self.job_step,
-                    **action_parameters)
+                self.run_action(_queue=self._queue,
+                        action_index=self.job_step,
+                        **action_parameters)
 
-            self.job_step += 1
+                self.job_step += 1
 
-            time.sleep(run_parameters['sleep_time'])
-
-        self._queue.join()
+                time.sleep(run_parameters['sleep_time'])
+        finally:
+            self._stop_log_server()
 
         if all(status == 'X' for status in
                 (getattr(action, 'status') for action in self.actions)):
