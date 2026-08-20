@@ -1,0 +1,9 @@
+doi,publisher,journal,issn,year,cohort,split,selection_rank,article_type,eligibility,oa_status,discipline,author_count,citation_style,title,crossref_url
+10.1021/acscatal.5c01592,ACS,ACS Catalysis,2155-5435,2025,implementation_smoke,development,,journal-article,original_research,unknown,chemistry,,,,https://doi.org/10.1021/acscatal.5c01592
+10.1021/jacs.5c11789,ACS,Journal of the American Chemical Society,0002-7863,2025,implementation_smoke,development,,journal-article,original_research,unknown,chemistry,,,,https://doi.org/10.1021/jacs.5c11789
+10.1103/physreva.111.042608,APS,Physical Review A,2469-9926,2025,implementation_smoke,development,,journal-article,original_research,unknown,physics,,,,https://doi.org/10.1103/physreva.111.042608
+10.1103/physrevb.111.235409,APS,Physical Review B,2469-9950,2025,implementation_smoke,development,,journal-article,original_research,unknown,physics,,,,https://doi.org/10.1103/physrevb.111.235409
+10.1016/j.jclepro.2025.146010,ELS,Journal of Cleaner Production,0959-6526,2025,implementation_smoke,development,,journal-article,original_research,unknown,sustainability,,,,https://doi.org/10.1016/j.jclepro.2025.146010
+10.1016/j.trac.2025.118165,ELS,TrAC Trends in Analytical Chemistry,0165-9936,2025,implementation_smoke,development,,journal-article,review,unknown,chemistry,,,,https://doi.org/10.1016/j.trac.2025.118165
+10.1038/s41598-025-92476-w,NAT,Scientific Reports,2045-2322,2025,implementation_smoke,development,,journal-article,original_research,open,biomedicine,,,,https://doi.org/10.1038/s41598-025-92476-w
+10.1039/d5nj01475a,RSC,New Journal of Chemistry,1144-0546,2025,implementation_smoke,development,,journal-article,original_research,unknown,chemistry,,,,https://doi.org/10.1039/d5nj01475a

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://appeer.invalid/validation/records.schema.json",
+  "title": "appeer validation records",
+  "$defs": {
+    "doi": {
+      "type": "string",
+      "pattern": "^10\\.\\d{4,9}/\\S+$"
+    },
+    "day": {
+      "type": "string",
+      "format": "date"
+    },
+    "article": {
+      "type": "object",
+      "required": ["doi", "publisher", "journal", "issn", "year", "cohort", "split"],
+      "properties": {
+        "doi": {"$ref": "#/$defs/doi"},
+        "publisher": {"enum": ["ACS", "APS", "ELS", "NAT", "RSC"]},
+        "journal": {"type": "string", "minLength": 1},
+        "issn": {"type": "string", "pattern": "^[0-9]{4}-[0-9X]{4}$"},
+        "year": {"type": "integer", "minimum": 2021, "maximum": 2025},
+        "cohort": {"enum": ["population_random", "reference_enriched"]},
+        "split": {"enum": ["development", "holdout"]}
+      },
+      "additionalProperties": true
+    },
+    "observation": {
+      "type": "object",
+      "required": ["doi", "target_field", "source", "source_lineage", "status"],
+      "properties": {
+        "doi": {"$ref": "#/$defs/doi"},
+        "target_field": {"enum": ["received", "accepted", "published"]},
+        "source": {"type": "string", "minLength": 1},
+        "source_lineage": {"type": "string", "minLength": 1},
+        "status": {"enum": ["observed", "source_not_covered", "source_field_missing", "source_inaccessible", "partial_precision", "semantic_noncomparable", "source_conflict", "malformed"]},
+        "normalized_date": {"anyOf": [{"$ref": "#/$defs/day"}, {"const": ""}]},
+        "precision": {"enum": ["", "day", "month", "year", "partial", "unknown"]}
+      },
+      "additionalProperties": true
+    },
+    "adjudication": {
+      "type": "object",
+      "required": ["doi", "target_field", "status", "confidence"],
+      "properties": {
+        "doi": {"$ref": "#/$defs/doi"},
+        "target_field": {"enum": ["received", "accepted", "published"]},
+        "adjudicated_date": {"anyOf": [{"$ref": "#/$defs/day"}, {"const": ""}]},
+        "status": {"enum": ["resolved", "genuinely_absent", "truth_unresolved"]},
+        "confidence": {"enum": ["A", "B", "C", "U"]}
+      },
+      "additionalProperties": true
+    }
+  }
+}

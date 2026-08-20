@@ -80,3 +80,10 @@ Use ``--help`` to see the available commands and options:
    appeer pub search --help
 
 If a command says that ``appeer`` has not been initialized, run ``appeer init``.
+
+Validation
+----------
+
+The ``validation`` directory contains the study protocol and reproducible tools
+used to measure date accuracy, ordinary coverage, and missingness across all five
+supported publishers.
