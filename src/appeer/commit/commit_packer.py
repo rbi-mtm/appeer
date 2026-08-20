@@ -10,6 +10,7 @@ from appeer.parse.parse_job import ParseJob
 from appeer.parse import parse_scripts
 from appeer.parse import parse_reports
 from appeer.parse.default_metadata import default_metadata
+from appeer.parse.metadata import PROVENANCE_FIELDS
 
 _CommitEntry = namedtuple('_CommitEntry', [
     'parse_label',
@@ -63,7 +64,7 @@ class CommitPacker:
 
         self.packet = []
 
-        self._metadata_list = default_metadata()
+        self._metadata_list = default_metadata() + list(PROVENANCE_FIELDS)
 
     def pack(self):
         """

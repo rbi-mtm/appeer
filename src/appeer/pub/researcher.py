@@ -172,6 +172,7 @@ class PubReSearcher:
                     'no_of_publications',
                     'no_of_publishers',
                     'no_of_journals',
+                    'warning_count',
                     'min_received',
                     'max_received',
                     'min_accepted',
@@ -190,6 +191,7 @@ class PubReSearcher:
                 report += f'{"no_of_publications":<{align}} {b["no_of_pubs"]}' + '\n'
                 report += f'{"no_of_publishers":<{align}} {b["no_of_publishers"]}' + '\n'
                 report += f'{"no_of_journals":<{align}} {b["no_of_journals"]}' + '\n'
+                report += f'{"warning_count":<{align}} {b["warning_count"]}' + '\n'
                 report += f'{"min_received":<{align}} {b["min_received"]}' + '\n'
                 report += f'{"max_received":<{align}} {b["max_received"]}' + '\n'
                 report += f'{"min_accepted":<{align}} {b["min_accepted"]}' + '\n'

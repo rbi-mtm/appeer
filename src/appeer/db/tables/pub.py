@@ -10,6 +10,7 @@ from appeer.db.tables.table import Table
 from appeer.db.tables.registered_tables import get_registered_tables
 
 from appeer.parse.default_metadata import default_metadata
+from appeer.parse.metadata import PROVENANCE_FIELDS
 from appeer.parse.parsers import date_utils
 
 import appeer.general.utils as _utils
@@ -40,8 +41,9 @@ FilteredPub = namedtuple(typename='FilteredPub',
         'publication_type',
         'no_of_authors',
         'author_names',
-        'affiliations'],
-        defaults=[None, None, None, None, None]
+        'affiliations',
+        'warnings'],
+        defaults=[None, None, None, None, None, None]
         )
 
 class Pub(Table,
@@ -157,8 +159,8 @@ class Pub(Table,
         duplicate = False
         inserted = False
 
-        columns = default_metadata()
-        data = {column: kwargs[column] for column in columns}
+        columns = default_metadata() + list(PROVENANCE_FIELDS)
+        data = {column: kwargs.get(column) for column in columns}
         for column in ('author_names', 'affiliations'):
             value = data[column]
             if isinstance(value, str):
@@ -166,6 +168,11 @@ class Pub(Table,
             if column == 'author_names' and value and isinstance(value[0], list):
                 value = [entry[0] for entry in value]
             data[column] = json.dumps(value, ensure_ascii=False)
+        warnings = data.get('warnings')
+        if isinstance(warnings, str):
+            json.loads(warnings)
+        else:
+            data['warnings'] = json.dumps(warnings or [], ensure_ascii=False)
 
         columns_sql = ', '.join(columns)
         colons_values = ', '.join(':' + column for column in columns)
@@ -307,6 +314,7 @@ class Pub(Table,
             pub = pub._replace(
                 author_names=json.loads(pub.author_names),
                 affiliations=json.loads(pub.affiliations),
+                warnings=json.loads(pub.warnings or '[]'),
             )
 
         return pub
@@ -639,6 +647,8 @@ class Pub(Table,
         else:
             query += ',\nNULL'
 
+        query += ',\nwarnings'
+
         query += '\nFROM pub\n'
 
         query += add_2_query
@@ -658,6 +668,7 @@ class Pub(Table,
                           if publication.author_names else None),
             affiliations=(json.loads(publication.affiliations)
                           if publication.affiliations else None),
+            warnings=json.loads(publication.warnings or '[]'),
         ) for publication in filtered_pubs]
 
         return filtered_pubs

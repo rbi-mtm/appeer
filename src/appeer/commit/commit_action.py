@@ -6,6 +6,7 @@ from appeer.jobs.action import Action
 from appeer.db.pub_db import PubDB
 
 from appeer.parse.default_metadata import default_metadata
+from appeer.parse.metadata import PROVENANCE_FIELDS
 
 from appeer.commit import commit_reports as reports
 
@@ -196,7 +197,7 @@ class CommitAction(Action, action_type='commit'): #pylint:disable=too-many-insta
         self._aprint(reports.commit_action_start(self))
 
         metadata = {meta: getattr(self, meta)
-                for meta in default_metadata()
+                for meta in default_metadata() + list(PROVENANCE_FIELDS)
                 }
 
         with PubDB() as pub_db:

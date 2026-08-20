@@ -75,6 +75,9 @@ class PubAnalyzer:
                     'no_of_publishers': len(publishers),
                     'journals': journals,
                     'no_of_journals': len(journals),
+                    'warning_count': sum(
+                        len(publication.warnings or [])
+                        for publication in self._filtered_pubs),
                     }
 
 

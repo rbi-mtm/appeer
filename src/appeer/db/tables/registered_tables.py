@@ -78,6 +78,12 @@ def get_registered_tables():
                  'normalized_publisher',
                  'normalized_journal',
                  'parser',
+                 'raw_sha256',
+                 'package_version',
+                 'git_revision',
+                 'parsed_at',
+                 'invalid_fields',
+                 'warnings',
                  'success',
                  'status',
                  'committed'],
@@ -118,6 +124,12 @@ def get_registered_tables():
                  'normalized_published',
                  'normalized_publisher',
                  'normalized_journal',
+                 'raw_sha256',
+                 'parser',
+                 'package_version',
+                 'git_revision',
+                 'parsed_at',
+                 'warnings',
                  'success',
                  'status',
                  'passed',
@@ -139,7 +151,13 @@ def get_registered_tables():
                  'normalized_accepted',
                  'normalized_published',
                  'normalized_publisher',
-                 'normalized_journal'
+                 'normalized_journal',
+                 'raw_sha256',
+                 'parser',
+                 'package_version',
+                 'git_revision',
+                 'parsed_at',
+                 'warnings'
                  ]
 
                 }

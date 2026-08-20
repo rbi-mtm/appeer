@@ -23,6 +23,15 @@ PUBLICATION_FIELDS = (
     'normalized_journal',
 )
 
+PROVENANCE_FIELDS = (
+    'raw_sha256',
+    'parser',
+    'package_version',
+    'git_revision',
+    'parsed_at',
+    'warnings',
+)
+
 DOI_RE = re.compile(r'^10\.\d{4,9}/[-._;()/:A-Z0-9]+$', re.IGNORECASE)
 
 

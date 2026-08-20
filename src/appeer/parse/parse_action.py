@@ -2,6 +2,10 @@
 
 import os
 import inspect
+import datetime
+import hashlib
+
+from appeer import __version__
 
 from appeer.general import utils as _utils
 
@@ -240,23 +244,42 @@ class ParseAction(Action, action_type='parse'): #pylint:disable=too-many-instanc
                 publisher_journals_dict[f'{publisher_code}'] =\
                         publisher_journals
 
-            parser = parser_class(loaded_data,
+            parser = parser_class(self.input_file,
                     publishers_index=publishers_index,
                     publisher_journals=publisher_journals)
 
             self._aprint(reports.parsing_report(parser))
 
-            if parser.success:
-
-                for meta in parser.metadata_list:
+            for meta in parser.metadata_list:
+                value = getattr(parser, meta)
+                if value is not None:
                     setattr(self,
                             meta,
-                            getattr(parser, meta))
+                            value)
 
+            for field, value in parser.provenance.items():
+                if value is not None:
+                    setattr(self, field, value)
+
+            if parser.success:
                 self.success = 'T'
 
             else:
                 self.success = 'F'
+
+        if not self.parser:
+            with open(self.input_file, 'rb') as input_file:
+                raw_sha256 = hashlib.sha256(input_file.read()).hexdigest()
+            self.raw_sha256 = raw_sha256
+            self.package_version = __version__
+            self.parsed_at = datetime.datetime.now(datetime.UTC).isoformat()
+            self.invalid_fields = list(parser_class.metadata_list) if parser_class else [
+                'doi', 'publisher', 'journal', 'title', 'publication_type',
+                'no_of_authors', 'author_names', 'affiliations', 'received',
+                'accepted', 'published', 'normalized_received',
+                'normalized_accepted', 'normalized_published',
+                'normalized_publisher', 'normalized_journal']
+            self.warnings = ['unsupported_layout']
 
         self.status = 'X'
 

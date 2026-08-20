@@ -1,5 +1,7 @@
 """Handles the ``parses`` table in ``jobs.db``"""
 
+import json
+
 from appeer.db.tables.action_table import ActionTable
 from appeer.db.tables.registered_tables import get_registered_tables
 
@@ -113,6 +115,12 @@ class Parses(ActionTable,
             'normalized_publisher': None,
             'normalized_journal': None,
             'parser': None,
+            'raw_sha256': None,
+            'package_version': None,
+            'git_revision': None,
+            'parsed_at': None,
+            'invalid_fields': None,
+            'warnings': None,
             'success': 'F',
             'status': 'W',
             'committed': 'F'
@@ -384,6 +392,31 @@ class Parses(ActionTable,
                 UPDATE parses SET parser = ? WHERE label = ? AND action_index = ?
                 """, (new_value, label, action_index))
 
+                self._con.commit()
+
+            case ('raw_sha256' | 'package_version' | 'git_revision'
+                  | 'parsed_at'):
+
+                if not isinstance(new_value, str):
+                    raise ValueError(
+                        f'Cannot update parses.{column_name}; must be a string.')
+                self._cur.execute(
+                    f'UPDATE parses SET {column_name} = ? '
+                    'WHERE label = ? AND action_index = ?',
+                    (new_value, label, action_index))
+                self._con.commit()
+
+            case 'invalid_fields' | 'warnings':
+
+                if not isinstance(new_value, list) or not all(
+                        isinstance(item, str) for item in new_value):
+                    raise ValueError(
+                        f'Cannot update parses.{column_name}; must be a list of strings.')
+                self._cur.execute(
+                    f'UPDATE parses SET {column_name} = ? '
+                    'WHERE label = ? AND action_index = ?',
+                    (json.dumps(new_value, ensure_ascii=False),
+                     label, action_index))
                 self._con.commit()
 
             case 'success':
