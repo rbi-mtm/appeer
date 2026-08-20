@@ -1,5 +1,14 @@
 import pytest
 
+
+@pytest.fixture(autouse=True)
+def isolated_xdg(tmp_path, monkeypatch):
+    """Keep every test away from the user's configuration and data."""
+
+    monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path / 'config'))
+    monkeypatch.setenv('XDG_DATA_HOME', str(tmp_path / 'data'))
+    monkeypatch.setenv('XDG_CACHE_HOME', str(tmp_path / 'cache'))
+
 def pytest_addoption(parser):
     parser.addoption(
         "--runslow", action="store_true", default=False, help="run slow tests"

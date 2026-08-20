@@ -1,0 +1,76 @@
+{
+  "nature_block_page.html": {
+    "fixture_kind": "synthetic non-article response",
+    "source_url": "https://www.nature.com/articles/example",
+    "retrieved_at": "2026-08-20T06:22:15Z",
+    "sha256": "0c4902f92a8dda2550b5c4835be5c9d9850e4f15428490687341a07baced77f1",
+    "expected_parser": null
+  },
+  "nature_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://www.nature.com/articles/s41598-025-92476-w",
+    "retrieved_at": "2026-08-20T06:22:15Z",
+    "sha256": "164ef54133b2560da8ad007cb742f23050ef8b3ddc13ca61ea8d472494720191",
+    "expected_parser": "Parser_NAT_ANY_txt",
+    "expected": {
+      "doi": "10.1038/s41598-025-92476-w",
+      "publisher": "Nature Publishing Group",
+      "journal": "Scientific Reports",
+      "title": "Chlorhexidine solutions are more effective than povidone-iodine solutions as skin disinfectants for the prevention of intravascular catheter-related infections: A meta-analysis",
+      "publication_type": "Article",
+      "no_of_authors": 3,
+      "author_names": ["Aiping Deng", "Fangli Xiong", "Qiuping Ren"],
+      "affiliations": [
+        ["West China Hospital, Sichuan University, Chengdu, China", "West China School of Nursing, Sichuan University, Chengdu, China"],
+        ["West China School of Nursing, Sichuan University, Chengdu, China", "Center of Gerontology and Geriatrics, West China Hospital, Sichuan University, Chengdu, China"],
+        ["West China School of Nursing, Sichuan University, Chengdu, China", "Division of Liver Surgery, Department of General Surgery, West China Hospital, West China School of Nursing, Sichuan University, Chengdu, China", "West China School of Medicine, West China Hospital, Sichuan University, Chengdu, China", "Nursing Key Laboratory of Sichuan Province, West China Medical Center, Sichuan Medical Univsersity, Chengdu, China"]
+      ],
+      "received": "2024-08-07",
+      "accepted": "2025-02-27",
+      "published": "2025-03-27",
+      "normalized_received": "2024-08-07",
+      "normalized_accepted": "2025-02-27",
+      "normalized_published": "2025-03-27",
+      "normalized_publisher": "Nature Portfolio",
+      "normalized_journal": "Scientific Reports"
+    }
+  },
+  "rsc_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://pubs.rsc.org/en/content/articlehtml/2025/nj/d5nj01475a",
+    "retrieved_at": "2026-08-20T06:22:15Z",
+    "sha256": "7e8cb288e8f034ab15e10f53125a45e7dc39aa5eac5011ef49474d6b6863bc14",
+    "expected_parser": "Parser_RSC_ANY_txt",
+    "expected": {
+      "doi": "10.1039/d5nj01475a",
+      "publisher": "Royal Society of Chemistry",
+      "journal": "New Journal of Chemistry",
+      "title": "Laser driven exfoliation and in situ engineering of MoS2/WS2–Ag nanocomposites for high-performance electrochemical sensing and photonic applications",
+      "publication_type": "Paper",
+      "no_of_authors": 5,
+      "author_names": ["Parvathy Nancy", "J. S. Arya Nair", "Sabu Thomas", "K. Y. Sandhya", "Nandakumar Kalarikkal"],
+      "affiliations": [
+        ["International Centre for Ultrafast Studies, Mahatma Gandhi University, Kottayam 686560, Kerala, India"],
+        ["Department of Chemistry, Indian Institute of Space Science and Technology, Valiyamala, Thiruvananthapuram 695-547, Kerala, India"],
+        ["International and Inter-University Center for Nanoscience and Nanotechnology, Mahatma Gandhi University, Kottayam 686560, Kerala, India"],
+        ["Department of Chemistry, Indian Institute of Space Science and Technology, Valiyamala, Thiruvananthapuram 695-547, Kerala, India"],
+        ["International Centre for Ultrafast Studies, Mahatma Gandhi University, Kottayam 686560, Kerala, India", "International and Inter-University Center for Nanoscience and Nanotechnology, Mahatma Gandhi University, Kottayam 686560, Kerala, India", "School of Pure and Applied Physics, Mahatma Gandhi University, Kottayam 686560, Kerala, India"]
+      ],
+      "received": "3rd April 2025",
+      "accepted": "25th June 2025",
+      "published": "2025-06-26",
+      "normalized_received": "2025-04-03",
+      "normalized_accepted": "2025-06-25",
+      "normalized_published": "2025-06-26",
+      "normalized_publisher": "The Royal Society of Chemistry",
+      "normalized_journal": "NJC (New Journal of Chemistry)"
+    }
+  },
+  "unsupported_article.html": {
+    "fixture_kind": "synthetic unsupported publisher",
+    "source_url": "https://example.invalid/article",
+    "retrieved_at": "2026-08-20T06:22:15Z",
+    "sha256": "6fd0405d41dc34b00f76cf3f950653f5e918e3cd52d6a8e9ae8db77811aecef7",
+    "expected_parser": null
+  }
+}
