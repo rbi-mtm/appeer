@@ -98,6 +98,13 @@ def validate_metadata(metadata):
         if metadata.get(field) in (None, '', [], ()):
             invalid.append(field)
 
+    text_fields = set(PUBLICATION_FIELDS) - {
+        'no_of_authors', 'author_names', 'affiliations'}
+    for field in text_fields:
+        if metadata.get(field) is not None and not isinstance(
+                metadata[field], str):
+            invalid.append(field)
+
     if metadata.get('doi') and not normalize_doi(metadata['doi']):
         invalid.append('doi')
 
@@ -109,12 +116,22 @@ def validate_metadata(metadata):
     authors = metadata.get('author_names')
     affiliations = metadata.get('affiliations')
     count = metadata.get('no_of_authors')
-    if authors and (not isinstance(count, int) or count != len(authors)):
+    if not isinstance(count, int) or isinstance(count, bool) or count < 1:
         invalid.append('no_of_authors')
-    if authors and (not isinstance(affiliations, list)
-                    or len(affiliations) != len(authors)
-                    or not all(isinstance(entry, list) and entry
-                               for entry in affiliations)):
+    if authors and (not isinstance(authors, list)
+                    or not all(isinstance(author, str) and author.strip()
+                               for author in authors)):
+        invalid.append('author_names')
+    if isinstance(authors, list) and (not isinstance(count, int)
+                                     or count != len(authors)):
+        invalid.append('no_of_authors')
+    if (not isinstance(affiliations, list)
+            or not isinstance(authors, list)
+            or len(affiliations) != len(authors)
+            or not all(isinstance(entry, list) and entry
+                       and all(isinstance(value, str) and value.strip()
+                               for value in entry)
+                       for entry in affiliations)):
         invalid.append('affiliations')
 
     received = metadata.get('normalized_received')

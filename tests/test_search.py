@@ -9,14 +9,14 @@ import pytest
 from appeer.db.pub_db import PubDB
 from appeer.parse.parsers import date_utils
 from appeer.pub.researcher import PubReSearcher
+from tests.support import fixture_record
 
 
 FIXTURES = Path(__file__).parent / 'fixtures'
 
 
 def fixture_metadata(name):
-    manifest = json.loads((FIXTURES / 'manifest.json').read_text(encoding='utf-8'))
-    return manifest[name]['expected'].copy()
+    return fixture_record(name)
 
 
 @pytest.fixture

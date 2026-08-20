@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from appeer.parse.parsers.preparser import Preparser
+from appeer.parse.parsers import parser as parser_module
 from appeer.parse.parsers.NAT.parser_NAT_ANY_txt import Parser_NAT_ANY_txt
 from appeer.parse.parsers.RSC.parser_RSC_ANY_txt import Parser_RSC_ANY_txt
 
@@ -111,3 +112,22 @@ def test_missing_affiliations_is_a_hard_failure(tmp_path):
     assert parser.author_names
     assert parser.affiliations is None
     assert 'affiliations' in parser.invalid_fields
+
+
+def test_git_provenance_is_resolved_from_the_package_repository(monkeypatch):
+    observed = {}
+
+    class Result:
+        stdout = 'abc123\n'
+
+    def fake_run(command, **kwargs):
+        observed['command'] = command
+        observed['kwargs'] = kwargs
+        return Result()
+
+    monkeypatch.setattr(parser_module.subprocess, 'run', fake_run)
+
+    assert Parser_NAT_ANY_txt._git_revision() == 'abc123'
+    assert observed['command'][:2] == ['git', '-C']
+    assert Path(observed['command'][2]) == Path(__file__).parents[1]
+    assert observed['command'][3:] == ['rev-parse', '--verify', 'HEAD']

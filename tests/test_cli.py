@@ -7,6 +7,7 @@ from click.testing import CliRunner
 
 from appeer.db.pub_db import PubDB
 from appeer.general.config import Config
+from tests.support import fixture_record
 
 
 FIXTURES = Path(__file__).parent / 'fixtures'
@@ -42,8 +43,7 @@ def test_cli_writes_documented_json_with_author_names(tmp_path):
         encoding='utf-8',
     )
 
-    manifest = json.loads((FIXTURES / 'manifest.json').read_text(encoding='utf-8'))
-    metadata = manifest['nature_current_article.html']['expected']
+    metadata = fixture_record('nature_current_article.html')
     database = PubDB()
     database.create_database()
     database.pub.add_entry(**metadata)

@@ -2,6 +2,8 @@
 
 import json
 import sqlite3
+import datetime
+import re
 from collections import namedtuple
 
 import click
@@ -10,7 +12,11 @@ from appeer.db.tables.table import Table
 from appeer.db.tables.registered_tables import get_registered_tables
 
 from appeer.parse.default_metadata import default_metadata
-from appeer.parse.metadata import PROVENANCE_FIELDS
+from appeer.parse.metadata import (
+    PROVENANCE_FIELDS,
+    normalize_doi,
+    validate_metadata,
+)
 from appeer.parse.parsers import date_utils
 
 import appeer.general.utils as _utils
@@ -164,15 +170,55 @@ class Pub(Table,
         for column in ('author_names', 'affiliations'):
             value = data[column]
             if isinstance(value, str):
-                value = json.loads(value)
+                try:
+                    value = json.loads(value)
+                except json.JSONDecodeError as exc:
+                    raise ValueError(
+                        f'{column} must contain a JSON list.') from exc
             if column == 'author_names' and value and isinstance(value[0], list):
+                if not all(len(entry) == 1 for entry in value):
+                    raise ValueError(
+                        'Each serialized author entry must contain one name.')
                 value = [entry[0] for entry in value]
-            data[column] = json.dumps(value, ensure_ascii=False)
+            data[column] = value
+
+        invalid_fields, detected_warnings = validate_metadata(data)
+        if invalid_fields:
+            raise ValueError(
+                'Publication metadata is incomplete or invalid: '
+                + ', '.join(invalid_fields))
+        data['doi'] = normalize_doi(data['doi'])
+
         warnings = data.get('warnings')
         if isinstance(warnings, str):
-            json.loads(warnings)
-        else:
-            data['warnings'] = json.dumps(warnings or [], ensure_ascii=False)
+            try:
+                warnings = json.loads(warnings)
+            except json.JSONDecodeError as exc:
+                raise ValueError('warnings must contain a JSON list.') from exc
+        if not isinstance(warnings, list) or not all(
+                isinstance(warning, str) for warning in warnings):
+            raise ValueError('warnings must be a list of strings.')
+        warnings = list(dict.fromkeys(warnings + detected_warnings))
+
+        if not isinstance(data['raw_sha256'], str) or not re.fullmatch(
+                r'[0-9a-fA-F]{64}', data['raw_sha256']):
+            raise ValueError('raw_sha256 must be a 64-character hexadecimal hash.')
+        for field in ('parser', 'package_version'):
+            if not isinstance(data[field], str) or not data[field].strip():
+                raise ValueError(f'{field} must be a nonempty string.')
+        try:
+            datetime.datetime.fromisoformat(data['parsed_at'])
+        except (TypeError, ValueError) as exc:
+            raise ValueError('parsed_at must be an ISO datetime.') from exc
+        if data['git_revision'] is not None and not isinstance(
+                data['git_revision'], str):
+            raise ValueError('git_revision must be a string or null.')
+
+        data['author_names'] = json.dumps(
+            data['author_names'], ensure_ascii=False)
+        data['affiliations'] = json.dumps(
+            data['affiliations'], ensure_ascii=False)
+        data['warnings'] = json.dumps(warnings, ensure_ascii=False)
 
         columns_sql = ', '.join(columns)
         colons_values = ', '.join(':' + column for column in columns)

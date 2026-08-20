@@ -1,21 +1,16 @@
 """Deterministic SQLite ownership, rollback, and resume tests."""
 
-import json
 import sqlite3
-from pathlib import Path
 
 import pytest
 
 from appeer.db.jobs_db import JobsDB
 from appeer.db.pub_db import PubDB
-
-
-FIXTURES = Path(__file__).parent / 'fixtures'
+from tests.support import fixture_record
 
 
 def nature_metadata():
-    manifest = json.loads((FIXTURES / 'manifest.json').read_text(encoding='utf-8'))
-    return manifest['nature_current_article.html']['expected'].copy()
+    return fixture_record('nature_current_article.html')
 
 
 def test_database_owns_stable_tables_and_closes_exact_connection(tmp_path):
@@ -70,11 +65,22 @@ def test_failed_pub_write_rolls_back(tmp_path):
     database.create_database()
     metadata = nature_metadata() | {'title': object()}
 
-    with pytest.raises(sqlite3.ProgrammingError):
+    with pytest.raises(ValueError, match='title'):
         database.pub.add_entry(**metadata)
 
     assert database.connection.execute('SELECT COUNT(*) FROM pub').fetchone()[0] == 0
     assert not database.connection.in_transaction
+    database.close()
+
+
+def test_incomplete_publication_is_rejected_at_database_boundary(tmp_path):
+    database = PubDB(db_path=tmp_path / 'pub.db')
+    database.create_database()
+
+    with pytest.raises(ValueError, match='incomplete or invalid'):
+        database.pub.add_entry(doi='10.1234/incomplete')
+
+    assert database.connection.execute('SELECT COUNT(*) FROM pub').fetchone()[0] == 0
     database.close()
 
 

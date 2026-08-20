@@ -191,6 +191,8 @@ def get_table_schemas():
                 definition += f" CHECK ({column} IN ('I', 'W', 'R', 'E', 'X'))"
             if column == 'no_of_authors':
                 definition += ' CHECK (no_of_authors > 0)'
+            if table == 'pub' and column != 'git_revision':
+                definition += ' NOT NULL'
             definitions.append(definition)
 
         if table.endswith('_jobs'):

@@ -8,6 +8,7 @@ import inspect
 import json
 import os
 import subprocess
+from pathlib import Path
 
 from appeer import __version__
 from appeer.general import utils as _utils
@@ -108,9 +109,15 @@ class Parser(abc.ABC):
 
     @staticmethod
     def _git_revision():
+        repository = next((parent for parent in Path(__file__).resolve().parents
+                           if (parent / '.git').exists()
+                           and (parent / 'src' / 'appeer').is_dir()), None)
+        if repository is None:
+            return None
         try:
             result = subprocess.run(
-                ['git', 'rev-parse', '--verify', 'HEAD'],
+                ['git', '-C', str(repository),
+                 'rev-parse', '--verify', 'HEAD'],
                 check=True,
                 capture_output=True,
                 text=True,
