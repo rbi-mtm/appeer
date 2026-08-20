@@ -8,7 +8,7 @@ from validation.scripts import common
 from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
-from validation.scripts.sample import select
+from validation.scripts.sample import fetch_frame, select
 
 
 PROVENANCE = {
@@ -71,6 +71,38 @@ def test_study_client_rejects_anonymous_placeholder():
         assert 'transparent user agent' in str(error)
     else:  # pragma: no cover
         raise AssertionError('anonymous validation client was accepted')
+
+
+def test_crossref_frame_allows_reused_advancing_cursor(tmp_path, monkeypatch):
+    pages = [
+        {'items': [{'DOI': '10.1000/one', 'title': ['One'],
+                    'type': 'journal-article'}], 'next-cursor': 'same'},
+        {'items': [{'DOI': '10.1000/two', 'title': ['Two'],
+                    'type': 'journal-article'}], 'next-cursor': 'same'},
+        {'items': [], 'next-cursor': 'same'},
+    ]
+
+    class Response:
+        def __init__(self, message):
+            self.message = message
+
+        def json(self):
+            return {'message': self.message}
+
+    class Client:
+        def get(self, *args, **kwargs):
+            return Response(pages.pop(0))
+
+    path = tmp_path / 'frame.jsonl'
+    monkeypatch.setattr(
+        'validation.scripts.sample.frame_path', lambda journal, year: path)
+    monkeypatch.setattr('validation.scripts.sample.VALIDATION_ROOT', tmp_path)
+    result = fetch_frame(Client(), {
+        'publisher': 'ACS', 'journal': 'Example', 'issn': '0000-0000',
+    }, 2025, refresh=True)
+
+    assert result['record_count'] == 2
+    assert len(path.read_text(encoding='utf-8').splitlines()) == 2
 
 
 def test_pubmed_history_is_extracted_by_explicit_status():

@@ -71,11 +71,13 @@ def fetch_frame(client, journal, year, refresh=False):
                 },
             )
             message = response.json()['message']
+            added = 0
             for item in message.get('items', []):
                 doi = canonical_doi(item.get('DOI'))
                 if doi is None or doi in seen:
                     continue
                 seen.add(doi)
+                added += 1
                 record = {
                     'doi': doi,
                     'publisher': journal['publisher'],
@@ -88,8 +90,16 @@ def fetch_frame(client, journal, year, refresh=False):
                 }
                 stream.write(json.dumps(record, sort_keys=True) + '\n')
             next_cursor = message.get('next-cursor')
-            if not message.get('items', []) or next_cursor == cursor:
+            if not message.get('items', []):
                 break
+            if added == 0:
+                raise ValueError(
+                    f"Crossref cursor repeated a page for {journal['journal']} "
+                    f'{year}; refusing to freeze an incomplete frame')
+            if not next_cursor:
+                raise ValueError(
+                    f"Crossref omitted its next cursor for {journal['journal']} "
+                    f'{year}; refusing to freeze an incomplete frame')
             cursor = next_cursor
     temporary.replace(path)
     return {
