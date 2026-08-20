@@ -1,107 +1,66 @@
-"""Isolated initialize, parse, commit, and query baseline."""
+"""Actual offline initialize, parse, commit, and query workflow."""
 
 import json
 from pathlib import Path
 
+from click.testing import CliRunner
+
+from appeer.cli import appeer_cli
 from appeer.db.jobs_db import JobsDB
 from appeer.db.pub_db import PubDB
-from appeer.parse.default_metadata import default_metadata
-from appeer.parse.metadata import PROVENANCE_FIELDS
-from appeer.parse.parsers.NAT.parser_NAT_ANY_txt import Parser_NAT_ANY_txt
-from appeer.pub.researcher import PubReSearcher
 
 
 FIXTURES = Path(__file__).parent / 'fixtures'
 
 
-def record_parse(database, label, parser):
-    database.parses.add_entry(
-        label=label,
-        action_index=0,
-        scrape_label=None,
-        scrape_action_index=None,
-        date='20260820-080000',
-        input_file=str(FIXTURES / 'nature_current_article.html'),
-    )
-    for field, value in parser.metadata.items():
-        if value is not None:
-            database.parses.update_entry(
-                label=label, action_index=0,
-                column_name=field, new_value=value)
-    for field, value in parser.provenance.items():
-        if value is not None:
-            database.parses.update_entry(
-                label=label, action_index=0,
-                column_name=field, new_value=value)
-    database.parses.update_entry(
-        label=label, action_index=0,
-        column_name='success', new_value='T' if parser.success else 'F')
-    database.parses.update_entry(
-        label=label, action_index=0, column_name='status', new_value='X')
-    return database.parses.get_action(label, 0)
-
-
-def test_initialize_parse_commit_query_and_failed_parse_isolation(tmp_path):
-    jobs_path = tmp_path / 'jobs.db'
-    pub_path = tmp_path / 'pub.db'
-    jobs = JobsDB(db_path=jobs_path)
-    publications = PubDB(db_path=pub_path)
-    jobs.create_database()
-    publications.create_database()
-
-    parser = Parser_NAT_ANY_txt(str(FIXTURES / 'nature_current_article.html'))
-    parsed = record_parse(jobs, 'valid_parse', parser)
-
-    assert parsed.raw_sha256 == parser.provenance['raw_sha256']
-    assert json.loads(parsed.invalid_fields) == []
-    assert json.loads(parsed.warnings) == []
-    assert [entry.label for entry in jobs.parses.uncommitted] == ['valid_parse']
-
-    commit_metadata = {
-        field: getattr(parsed, field)
-        for field in default_metadata() + list(PROVENANCE_FIELDS)
-    }
-    jobs.commits.add_entry(
-        label='baseline_commit',
-        action_index=0,
-        parse_label='valid_parse',
-        parse_action_index=0,
-        date='20260820-080100',
-        **commit_metadata,
-    )
-    duplicate, inserted = publications.pub.add_entry(**commit_metadata)
-    assert (duplicate, inserted) == (False, True)
-
-    broken_file = tmp_path / 'broken.html'
-    broken_file.write_text(
+def test_cli_pipeline_commits_only_complete_successful_parses(tmp_path):
+    broken = tmp_path / 'broken.html'
+    broken.write_text(
         (FIXTURES / 'nature_current_article.html').read_text(encoding='utf-8')
         .replace('10.1038/s41598-025-92476-w', 'invalid DOI'),
         encoding='utf-8',
     )
-    failed_parser = Parser_NAT_ANY_txt(str(broken_file))
-    failed = record_parse(jobs, 'failed_parse', failed_parser)
 
-    assert failed.success == 'F'
-    assert failed.title.startswith('Chlorhexidine solutions')
-    assert json.loads(failed.author_names) == [
-        ['Aiping Deng'], ['Fangli Xiong'], ['Qiuping Ren']]
-    assert 'doi' in json.loads(failed.invalid_fields)
-    assert [entry.label for entry in jobs.parses.uncommitted] == ['valid_parse']
-    assert publications.connection.execute(
-        'SELECT COUNT(*) FROM pub').fetchone()[0] == 1
+    runner = CliRunner()
+    initialized = runner.invoke(appeer_cli, ['init'], input='\n')
+    assert initialized.exit_code == 0, initialized.output
 
-    stored = publications.pub.get_pub(parser.doi)
-    assert stored.raw_sha256 == parser.provenance['raw_sha256']
-    assert stored.parser == 'Parser_NAT_ANY_txt'
-    assert stored.package_version
-    assert stored.parsed_at
-    assert stored.warnings == []
-    jobs.close()
-    publications.close()
+    parsed = runner.invoke(appeer_cli, [
+        'parse', '-F',
+        str(FIXTURES / 'nature_current_article.html'), str(broken),
+        '--job_label', 'pipeline_parse',
+    ])
+    assert parsed.exit_code == 0, parsed.output
+    assert 'SQLite objects created in a thread' not in parsed.output
 
-    with PubReSearcher(db_path=pub_path) as researcher:
-        researcher.search_pub(get_title=True, get_author_names=True)
-        assert len(researcher.filtered_pubs) == 1
-        assert researcher.filtered_pubs[0].doi == parser.doi
-        assert researcher.filtered_pubs[0].author_names == parser.author_names
-        assert researcher.analyzer.basic_search_results['warning_count'] == 0
+    with JobsDB() as jobs:
+        actions = jobs.parses.get_actions_by_label('pipeline_parse')
+        assert [action.success for action in actions] == ['T', 'F']
+        assert actions[1].title.startswith('Chlorhexidine solutions')
+        assert 'doi' in json.loads(actions[1].invalid_fields)
+        assert actions[1].raw_sha256
+
+    committed = runner.invoke(appeer_cli, [
+        'commit', '-P', 'pipeline_parse',
+        '--job_label', 'pipeline_commit',
+    ])
+    assert committed.exit_code == 0, committed.output
+
+    with PubDB(read_only=True) as publications:
+        rows = publications.pub.entries
+        assert len(rows) == 1
+        assert rows[0].doi == '10.1038/s41598-025-92476-w'
+        assert rows[0].raw_sha256
+        assert rows[0].parser == 'Parser_NAT_ANY_txt'
+
+    output = tmp_path / 'publications.json'
+    searched = runner.invoke(appeer_cli, [
+        'pub', 'search', '--get_title', '--get_author_names',
+        '--output', str(output),
+    ])
+    assert searched.exit_code == 0, searched.output
+    payload = json.loads(output.read_text(encoding='utf-8'))
+    assert len(payload) == 1
+    assert payload[0]['doi'] == '10.1038/s41598-025-92476-w'
+    assert payload[0]['author_names'] == [
+        'Aiping Deng', 'Fangli Xiong', 'Qiuping Ren']

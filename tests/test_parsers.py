@@ -66,12 +66,27 @@ def test_invalid_doi_is_a_hard_failure_but_partial_fields_remain(tmp_path):
         '10.1038/s41598-025-92476-w', '10.1038 malformed'), encoding='utf-8')
 
     parser = Parser_NAT_ANY_txt(str(broken))
+    selected, _ = Preparser(str(broken)).determine_parser()
 
     assert not parser.success
+    assert selected is Parser_NAT_ANY_txt
     assert parser.doi is None
     assert 'doi' in parser.invalid_fields
     assert parser.title.startswith('Chlorhexidine solutions')
     assert parser.author_names == ['Aiping Deng', 'Fangli Xiong', 'Qiuping Ren']
+
+
+def test_publisher_mismatched_doi_prefix_is_a_hard_failure(tmp_path):
+    source = (FIXTURES / 'nature_current_article.html').read_text(encoding='utf-8')
+    broken = tmp_path / 'wrong-prefix.html'
+    broken.write_text(source.replace(
+        '10.1038/s41598-025-92476-w', '10.1039/d5nj01475a'), encoding='utf-8')
+
+    parser = Parser_NAT_ANY_txt(str(broken))
+
+    assert not parser.success
+    assert parser.doi is None
+    assert 'doi' in parser.invalid_fields
 
 
 def test_impossible_date_is_a_hard_failure(tmp_path):

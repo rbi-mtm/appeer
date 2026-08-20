@@ -25,18 +25,19 @@ class Parser_NAT_ANY_txt(Parser,
         if exception:
             return False, exception
         publisher = first_meta(soup, 'citation_publisher', 'dc.publisher')
-        doi = normalize_doi(first_meta(soup, 'citation_doi', 'dc.identifier'))
         return (
             publisher in ('Nature Publishing Group', 'Nature Research',
                           'Nature Portfolio', 'Springer Nature')
-            and bool(doi and doi.startswith('10.1038/')),
+            and bool(first_meta(soup, 'citation_title', 'dc.title'))
+            and bool(first_meta(soup, 'citation_journal_title')),
             None,
         )
 
     @functools.cached_property
     def doi(self):
-        return normalize_doi(first_meta(
+        doi = normalize_doi(first_meta(
             self._input_data, 'citation_doi', 'dc.identifier', 'doi'))
+        return doi if doi and doi.startswith('10.1038/') else None
 
     @functools.cached_property
     def publisher(self):

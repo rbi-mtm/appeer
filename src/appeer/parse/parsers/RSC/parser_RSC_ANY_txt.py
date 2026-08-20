@@ -25,18 +25,19 @@ class Parser_RSC_ANY_txt(Parser,
         if exception:
             return False, exception
         publisher = first_meta(soup, 'citation_publisher', 'dc.publisher')
-        doi = normalize_doi(first_meta(soup, 'citation_doi', 'dc.identifier'))
         return (
             publisher in ('Royal Society of Chemistry',
                           'The Royal Society of Chemistry')
-            and bool(doi and doi.startswith('10.1039/')),
+            and bool(first_meta(soup, 'citation_title', 'dc.title'))
+            and bool(first_meta(soup, 'citation_journal_title', 'dc.source')),
             None,
         )
 
     @functools.cached_property
     def doi(self):
-        return normalize_doi(first_meta(
+        doi = normalize_doi(first_meta(
             self._input_data, 'citation_doi', 'dc.identifier'))
+        return doi if doi and doi.startswith('10.1039/') else None
 
     @functools.cached_property
     def publisher(self):
