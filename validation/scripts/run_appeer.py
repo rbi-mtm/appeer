@@ -75,8 +75,40 @@ def retry_delay(response, fallback):
         return fallback
 
 
-def retrieve(session, doi, publisher, timeout, user_agent, minimum_interval):
-    requested = f'https://doi.org/{doi}'
+def publisher_url(article):
+    doi = canonical_doi(article['doi'])
+    publisher = article['publisher']
+    suffix = doi.split('/', 1)[1]
+    if publisher == 'NAT':
+        return f'https://www.nature.com/articles/{suffix}'
+    if publisher == 'RSC':
+        codes = {
+            'Chemical Science': 'sc',
+            'RSC Advances': 'ra',
+            'Organic & Biomolecular Chemistry': 'ob',
+            'Journal of Materials Chemistry A': 'ta',
+            'Environmental Science: Processes & Impacts': 'em',
+        }
+        code = codes[article['journal']]
+        return (f"https://pubs.rsc.org/en/content/articlehtml/{article['year']}/"
+                f'{code}/{suffix}')
+    if publisher == 'ACS':
+        return f'https://pubs.acs.org/doi/{doi}'
+    if publisher == 'APS':
+        codes = {
+            'Physical Review Letters': 'prl',
+            'Physical Review A': 'pra',
+            'Physical Review B': 'prb',
+            'Physical Review D': 'prd',
+            'Physical Review X': 'prx',
+        }
+        return (f"https://journals.aps.org/{codes[article['journal']]}/abstract/"
+                f'{doi}')
+    return f'https://doi.org/{doi}'
+
+
+def retrieve(session, requested, publisher, timeout, user_agent,
+             minimum_interval):
     current = requested
     last_request = 0.0
     response = None
@@ -180,10 +212,10 @@ def process_publisher(publisher, articles, args, revision):
         if doi in completed:
             continue
         timestamp = dt.datetime.now(dt.timezone.utc).isoformat()
-        requested = f'https://doi.org/{doi}'
+        requested = publisher_url(article)
         try:
             response, final_url = retrieve(
-                session, doi, publisher, args.timeout, args.user_agent,
+                session, requested, publisher, args.timeout, args.user_agent,
                 args.minimum_interval)
             content = response.content
             digest = hashlib.sha256(content).hexdigest()
@@ -238,7 +270,7 @@ def run(args):
     by_publisher = defaultdict(list)
     for article in sample:
         by_publisher[article['publisher']].append(article)
-    revision = git_revision()
+    revision = args.parser_revision or git_revision()
     results = []
     retrievals = []
     with ThreadPoolExecutor(max_workers=len(by_publisher)) as executor:
@@ -279,6 +311,8 @@ def parser():
         'mailto:juraj.ovcar@gmail.com)'))
     result.add_argument('--refresh-publisher', action='append', default=[],
                         choices=sorted(EXPECTED_HOSTS))
+    result.add_argument('--parser-revision', default='',
+                        help='Frozen parser Git revision recorded in results')
     return result
 
 

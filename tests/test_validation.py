@@ -10,7 +10,7 @@ from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
 from validation.scripts.pre_adjudication import compare, reference_summary
-from validation.scripts.run_appeer import parse_file, retrieve
+from validation.scripts.run_appeer import parse_file, publisher_url, retrieve
 from validation.scripts.sample import fetch_frame, select
 from validation.scripts.screen_eligibility import classify
 
@@ -222,11 +222,24 @@ def test_elsevier_runner_follows_safe_linking_hub_pii():
 
     session = Session()
     response, final_url = retrieve(
-        session, '10.1016/j.example.2025.1', 'ELS', 30, 'test-agent', 0)
+        session, 'https://doi.org/10.1016/j.example.2025.1',
+        'ELS', 30, 'test-agent', 0)
 
     assert response.status_code == 200
     assert final_url == 'https://www.sciencedirect.com/science/article/pii/S123'
     assert session.urls[-1] == final_url
+
+
+def test_runner_uses_direct_nature_and_rsc_article_urls():
+    assert publisher_url({
+        'doi': '10.1038/s41598-025-92476-w', 'publisher': 'NAT',
+        'journal': 'Scientific Reports', 'year': '2025',
+    }) == 'https://www.nature.com/articles/s41598-025-92476-w'
+    assert publisher_url({
+        'doi': '10.1039/d5em00177c', 'publisher': 'RSC',
+        'journal': 'Environmental Science: Processes & Impacts', 'year': '2025',
+    }) == ('https://pubs.rsc.org/en/content/articlehtml/2025/em/'
+           'd5em00177c')
 
 
 def test_confirmatory_selection_uses_only_population_frame(tmp_path, monkeypatch):
