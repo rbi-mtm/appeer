@@ -1,0 +1,126 @@
+publisher,journal,issn,year,record_count,sha256,path
+NAT,Scientific Reports,2045-2322,2021,24533,c3f6051d50bb57a281df05d54e5ecca8659e3dacafd6b9043dfb9513e1986450,sampling/frames/NAT-2045-2322-2021.jsonl
+NAT,Scientific Reports,2045-2322,2022,22653,0481a91cf3925ff3e2eef2b8b25b83c8388967117413e1bf8b66127567a8fa3d,sampling/frames/NAT-2045-2322-2022.jsonl
+NAT,Scientific Reports,2045-2322,2023,23105,c0656c933a4e6ee622a01fca61b8583d559532c94448e221659c39d78d8e422f,sampling/frames/NAT-2045-2322-2023.jsonl
+NAT,Scientific Reports,2045-2322,2024,32182,e76f5f4d5e03fc4d267ae8fc67d0a5d810f0758caa9158ad30f049280b8787b5,sampling/frames/NAT-2045-2322-2024.jsonl
+NAT,Scientific Reports,2045-2322,2025,48695,a2c95d41078acfdb4947e094f99df342341a89116144134100e489580c7eeafd,sampling/frames/NAT-2045-2322-2025.jsonl
+NAT,Nature Communications,2041-1723,2021,7362,cf1f1a648f64cc536164e137c1789470a245f69a3965f17dfa64aaf93266f57c,sampling/frames/NAT-2041-1723-2021.jsonl
+NAT,Nature Communications,2041-1723,2022,7977,a6911d50d5ea6dc5fb040f34674a1f46958ec40722f158cc39d5beaac4e47f95,sampling/frames/NAT-2041-1723-2022.jsonl
+NAT,Nature Communications,2041-1723,2023,8527,8b517259da68712374aa791c045799b9e9e177c069ee5e1925256b0446ab9ef1,sampling/frames/NAT-2041-1723-2023.jsonl
+NAT,Nature Communications,2041-1723,2024,10926,0cc4e891eff7812e96777517f73c33c8db25f138b4092d5ab26d8d9772dcab34,sampling/frames/NAT-2041-1723-2024.jsonl
+NAT,Nature Communications,2041-1723,2025,12633,5fe4ab7543cc5ae1c8cf1a0862ad72096c4df63f7bff2e176fc93fe6aa7d3a01,sampling/frames/NAT-2041-1723-2025.jsonl
+NAT,Communications Biology,2399-3642,2021,1420,8098c78eaa3c7e941ac1001bad6d3d765181e381d4bc0db84ba23a3c28cd7e56,sampling/frames/NAT-2399-3642-2021.jsonl
+NAT,Communications Biology,2399-3642,2022,1421,f97a4566bdbae61aa7ca184da0ba7ac22f0825222479f01c17ebe36d8b1e970d,sampling/frames/NAT-2399-3642-2022.jsonl
+NAT,Communications Biology,2399-3642,2023,1301,aa7d9dcdcd8ff713117e9dc6ca6ae3ac7bd12207d00fc886ce43ca6cbe70b51b,sampling/frames/NAT-2399-3642-2023.jsonl
+NAT,Communications Biology,2399-3642,2024,1720,3d085cd34746fa33b99bd89cb5407549eefa29ecaf71799c25d04976b404273a,sampling/frames/NAT-2399-3642-2024.jsonl
+NAT,Communications Biology,2399-3642,2025,1993,a582037c0ea79f9b0961f5050e568ebb58a477537ed7fbf550a1d9dc68059afa,sampling/frames/NAT-2399-3642-2025.jsonl
+NAT,Nature Chemistry,1755-4330,2021,237,ace0cbc18a5f7224f121b58999faadcfa960e51806e214e723ba52971e906182,sampling/frames/NAT-1755-4330-2021.jsonl
+NAT,Nature Chemistry,1755-4330,2022,254,bae6c0365117902d4181907517f601c7ff5bc0631fa2ff3fe2bfd96fadcf54dc,sampling/frames/NAT-1755-4330-2022.jsonl
+NAT,Nature Chemistry,1755-4330,2023,286,7f1c81f3804eefd1cbf83695343fe3db43105662e623f5f7e619d443560fbc7f,sampling/frames/NAT-1755-4330-2023.jsonl
+NAT,Nature Chemistry,1755-4330,2024,291,106fb9bd615c02941f5bd870b7cf00630ab92d0a2f9d6e89bb584e58d9b2a53e,sampling/frames/NAT-1755-4330-2024.jsonl
+NAT,Nature Chemistry,1755-4330,2025,332,130771f8109e6b19d6f67b05df7038255ef7c70cad4b42e090ea38ada6828a58,sampling/frames/NAT-1755-4330-2025.jsonl
+NAT,Nature Physics,1745-2473,2021,361,1f5b2f50813aa37464670d8570d2413ebee9c863b866f183cb1496822144b98d,sampling/frames/NAT-1745-2473-2021.jsonl
+NAT,Nature Physics,1745-2473,2022,389,71e442255e0fef07270806bac7c7be34002a40c791604ef9b5528f5bac5aaf78,sampling/frames/NAT-1745-2473-2022.jsonl
+NAT,Nature Physics,1745-2473,2023,432,a2e3e83e7cb81c76970f0732cf633d5c89c517bb18103487b4851a0a4355a944,sampling/frames/NAT-1745-2473-2023.jsonl
+NAT,Nature Physics,1745-2473,2024,418,6b2e55bee5bb811e572b194285739fe668f751bb99e61680d15a3ece1bfd7a83,sampling/frames/NAT-1745-2473-2024.jsonl
+NAT,Nature Physics,1745-2473,2025,410,9bf733381addf87697f43d5915ec13e774804e54fdddd1e90d516f93fc75aff2,sampling/frames/NAT-1745-2473-2025.jsonl
+RSC,Chemical Science,2041-6539,2021,1839,6db478fa5e84800424ae318a9bee6497e0ffd93b640780dcd864226eb97b7336,sampling/frames/RSC-2041-6539-2021.jsonl
+RSC,Chemical Science,2041-6539,2022,1644,3bc5800f4cc56c478ae6e48367206fd147a8e82357e2bf43b1daf14d7bbe0f2b,sampling/frames/RSC-2041-6539-2022.jsonl
+RSC,Chemical Science,2041-6539,2023,1604,2bf8d72c31f04f58d06e93ac1ef7b06324d00abe06c98d548512c4a70ccbcd76,sampling/frames/RSC-2041-6539-2023.jsonl
+RSC,Chemical Science,2041-6539,2024,2091,1a8d2149cd95dadf6ac9b28a58a60df1567cb2f55d78d3dace26fd178c8f3084,sampling/frames/RSC-2041-6539-2024.jsonl
+RSC,Chemical Science,2041-6539,2025,2311,3637594e2700e33caec1b07e950808dab9f0c5e83db04be1c3c1e3fa2c0b6179,sampling/frames/RSC-2041-6539-2025.jsonl
+RSC,RSC Advances,2046-2069,2021,4095,b0b968ee212c243b4c59f847e5b560944c88095c0160f53867469df797800b99,sampling/frames/RSC-2046-2069-2021.jsonl
+RSC,RSC Advances,2046-2069,2022,3575,a5c52ced706a7803af976d18d4bc06bc4d9e64143c7ee5ee8afb1d3f6b503a99,sampling/frames/RSC-2046-2069-2022.jsonl
+RSC,RSC Advances,2046-2069,2023,3313,4ee747e44015eb4219a7e5f4da8538d70be4019d9424c736b1991fcf7e00a2a6,sampling/frames/RSC-2046-2069-2023.jsonl
+RSC,RSC Advances,2046-2069,2024,3484,4fbffb9f906253a12ef29834399aa94034b01770e5e539b0c28fb698667938a6,sampling/frames/RSC-2046-2069-2024.jsonl
+RSC,RSC Advances,2046-2069,2025,3811,69e3efdbdfad92ba743cf1119d68acadd0cbf62c36300050d42922138dd186bf,sampling/frames/RSC-2046-2069-2025.jsonl
+RSC,Organic & Biomolecular Chemistry,1477-0539,2021,1252,d09b2363e60a8463dedb469b7780adcd60218bedcc074cbe7c6787f9bef086fd,sampling/frames/RSC-1477-0539-2021.jsonl
+RSC,Organic & Biomolecular Chemistry,1477-0539,2022,1169,0f4ef195f074b2ff4c84c10273b2ae2ad8ab0d60b3fe504d0d168c20812e2283,sampling/frames/RSC-1477-0539-2022.jsonl
+RSC,Organic & Biomolecular Chemistry,1477-0539,2023,1236,da5034750f8c53e547b8b10f52879019833c17a7aa42ac0d7b0f520c3c035a0d,sampling/frames/RSC-1477-0539-2023.jsonl
+RSC,Organic & Biomolecular Chemistry,1477-0539,2024,1135,0c7cc9f6914e4e1d3883ee7bd011858342ec420676b025871a96b8d1ea51bb0e,sampling/frames/RSC-1477-0539-2024.jsonl
+RSC,Organic & Biomolecular Chemistry,1477-0539,2025,1281,6d5312db4dcb8374d930e613173582fa422586aac1f80a9af8d1b2f5bd2db708,sampling/frames/RSC-1477-0539-2025.jsonl
+RSC,Journal of Materials Chemistry A,2050-7496,2021,2508,331f13976b45b56aa31b2df0240593bcf02c120a3a9ed3735c543c2db02ed8c0,sampling/frames/RSC-2050-7496-2021.jsonl
+RSC,Journal of Materials Chemistry A,2050-7496,2022,2433,ce9f931d8e54873ac463a2e9498439e63daa862d0e65974b5dfa7484c4cd9bb0,sampling/frames/RSC-2050-7496-2022.jsonl
+RSC,Journal of Materials Chemistry A,2050-7496,2023,2416,4079656e06846503c13462a9cdfa75cdbed0f8b84fc1d56b8a942c6d0ead37c1,sampling/frames/RSC-2050-7496-2023.jsonl
+RSC,Journal of Materials Chemistry A,2050-7496,2024,2895,adb383d4539e5fd8dab2f495fcb9b24f4b8d476a06de94de618e939074cec9d9,sampling/frames/RSC-2050-7496-2024.jsonl
+RSC,Journal of Materials Chemistry A,2050-7496,2025,3455,e12216b86982687c5373e1b708a856811c6e00b8c3bac33b1192f9ade00a3654,sampling/frames/RSC-2050-7496-2025.jsonl
+RSC,Environmental Science: Processes & Impacts,2050-7895,2021,192,26a1fececef2bbd64f402d2787a3842f851dc3331c4836a5f0165497f1f3225f,sampling/frames/RSC-2050-7895-2021.jsonl
+RSC,Environmental Science: Processes & Impacts,2050-7895,2022,212,b51ccec0936e6a4868ca4475d140b5f8a81f2e4b04d173d144063732cd6f8401,sampling/frames/RSC-2050-7895-2022.jsonl
+RSC,Environmental Science: Processes & Impacts,2050-7895,2023,203,e687e1a62f89f09135e62c1fefbf16465d578b52ad3fbf8b00a825216648be1b,sampling/frames/RSC-2050-7895-2023.jsonl
+RSC,Environmental Science: Processes & Impacts,2050-7895,2024,223,e681ff24793bb64ae764a51634ae0af4ddc40ef56ee32449d85ed317cc4d34db,sampling/frames/RSC-2050-7895-2024.jsonl
+RSC,Environmental Science: Processes & Impacts,2050-7895,2025,318,e5e3768c1a2973f6cf07de965f4fce428817ed5ab6de3f70c7f0a40b640b1ec4,sampling/frames/RSC-2050-7895-2025.jsonl
+ACS,Journal of the American Chemical Society,0002-7863,2021,2546,508fba8fbdfd2b0b604d4df000ef964fe16e35163c43183309300c85efb46dfa,sampling/frames/ACS-0002-7863-2021.jsonl
+ACS,Journal of the American Chemical Society,0002-7863,2022,2728,e73c03282ad6427809e4a532076bdc5decf4604555c41b6d4ba9f401a6cdf13a,sampling/frames/ACS-0002-7863-2022.jsonl
+ACS,Journal of the American Chemical Society,0002-7863,2023,3130,83701e42f90b9042750ebb56bc012cab565eb20e2e48d220dd97548b21460e03,sampling/frames/ACS-0002-7863-2023.jsonl
+ACS,Journal of the American Chemical Society,0002-7863,2024,3783,5673f1a6985c8b77f7e5efa31112d551ee80eb2218c57cfd6bf5900a74b2062b,sampling/frames/ACS-0002-7863-2024.jsonl
+ACS,Journal of the American Chemical Society,0002-7863,2025,4830,c9b7f171a9d64507350010959dec85dfd82de2c37aadb11b1ce9069c5dc1aa66,sampling/frames/ACS-0002-7863-2025.jsonl
+ACS,ACS Nano,1936-0851,2021,1741,a03ab94602d6cc9930174801b39a82547a6b32b7cf3d3f59c51ef715ae8bb71b,sampling/frames/ACS-1936-0851-2021.jsonl
+ACS,ACS Nano,1936-0851,2022,1863,35dfef820f879aaf7fe673959e308c68fa14ca82683b03af55e1215230524c67,sampling/frames/ACS-1936-0851-2022.jsonl
+ACS,ACS Nano,1936-0851,2023,2137,946b4ac49d09735b2124a3c71c31da8f45a08ba026494e1c8af05dc6dbeaf652,sampling/frames/ACS-1936-0851-2023.jsonl
+ACS,ACS Nano,1936-0851,2024,2802,b123e57aef44d71c0e09b1d2c7d6f90dd730f13405e2a2775b23c2204be59a89,sampling/frames/ACS-1936-0851-2024.jsonl
+ACS,ACS Nano,1936-0851,2025,3282,998de6da8e6222cda50c2f164f4260e6eb5804c52f77bd5d35bfde1aa5df07ae,sampling/frames/ACS-1936-0851-2025.jsonl
+ACS,ACS Catalysis,2155-5435,2021,1444,18d13531e747c43cb0b12a22600f5d5db3bd855e6f31f7ab3a6b487b31ca73e0,sampling/frames/ACS-2155-5435-2021.jsonl
+ACS,ACS Catalysis,2155-5435,2022,1466,9376397a86d9148fe3f06a9f585c8b25ad7042c7a71c1b368195e83f2ce81f20,sampling/frames/ACS-2155-5435-2022.jsonl
+ACS,ACS Catalysis,2155-5435,2023,1466,8389382c77a28a0ff04c26f43d735312ad8f3e8ef837caf942a6927c20fb963d,sampling/frames/ACS-2155-5435-2023.jsonl
+ACS,ACS Catalysis,2155-5435,2024,1718,f286ffbd8f5c8d812e2a470d08eb18a8ce3f35bf45c190632ebca9587cfb4106,sampling/frames/ACS-2155-5435-2024.jsonl
+ACS,ACS Catalysis,2155-5435,2025,1853,6efab75b31d3f80d7180dae7e892a631fdda0f26f53caecc2303e285270693eb,sampling/frames/ACS-2155-5435-2025.jsonl
+ACS,Analytical Chemistry,0003-2700,2021,2096,6333c01e8dac8c730b27d7ef9e6fbe55b8be77b7b313d0da3ddf1612afe8e7a0,sampling/frames/ACS-0003-2700-2021.jsonl
+ACS,Analytical Chemistry,0003-2700,2022,2249,b84e3c5f9469c52a45b63e0191320aea22959286a1748353e473238c53058e2b,sampling/frames/ACS-0003-2700-2022.jsonl
+ACS,Analytical Chemistry,0003-2700,2023,2302,32175695bf9a0713ccc9cafa9e8b4140f5d1a88eb02dd836658a83f090b487b1,sampling/frames/ACS-0003-2700-2023.jsonl
+ACS,Analytical Chemistry,0003-2700,2024,2507,cd09e7903780a7ca85b3f330edf4c9cd51d5d243d87c7fd0581b8ddb785a9371,sampling/frames/ACS-0003-2700-2024.jsonl
+ACS,Analytical Chemistry,0003-2700,2025,3197,f79b34315c3f6fce05ec3252e6877d5886ee7dcc7a796d96937d6bbfdad8ab15,sampling/frames/ACS-0003-2700-2025.jsonl
+ACS,Environmental Science & Technology,0013-936X,2021,1741,34c814cf342aacb06b1ac771efdb32afb619bcdf473dd8e2153819831e870824,sampling/frames/ACS-0013-936X-2021.jsonl
+ACS,Environmental Science & Technology,0013-936X,2022,1774,c3fc47dfb1022242cf81171c59b01ff484ca1d8555f162c4a61e4befe25cd14f,sampling/frames/ACS-0013-936X-2022.jsonl
+ACS,Environmental Science & Technology,0013-936X,2023,2169,4ca8f89bae2090b9bf1de09df18afdb8452829e31eb15218b56afbca333ec0a4,sampling/frames/ACS-0013-936X-2023.jsonl
+ACS,Environmental Science & Technology,0013-936X,2024,2206,03a32a6fdda63a5b0a4847d6b00a537595c23417eb3fb9bb9c6cc905920c0169,sampling/frames/ACS-0013-936X-2024.jsonl
+ACS,Environmental Science & Technology,0013-936X,2025,2611,00594bc6c4069778e1f4d0879d9ecb883f8de679eb511e6c1b09787c5eea7392,sampling/frames/ACS-0013-936X-2025.jsonl
+APS,Physical Review Letters,0031-9007,2021,2442,99718a8325d9d32d7a3ffb3113097d41a2f00357b73bc1d68b032b71a422cf98,sampling/frames/APS-0031-9007-2021.jsonl
+APS,Physical Review Letters,0031-9007,2022,2136,b6e8ba3b6dce0c5a8155af44b10b8bb0d2dbda27f9b7c84a14bd05a9b20c3ec2,sampling/frames/APS-0031-9007-2022.jsonl
+APS,Physical Review Letters,0031-9007,2023,2185,1caeb487e0d47e60e30427a1f43e51ad4de2a63b4eb155bc0e3913e9a5f733fc,sampling/frames/APS-0031-9007-2023.jsonl
+APS,Physical Review Letters,0031-9007,2024,2524,0e9f444ade17bd478fa470dbe53cdf6500239b94dcab5063d093d338764ca878,sampling/frames/APS-0031-9007-2024.jsonl
+APS,Physical Review Letters,0031-9007,2025,3015,72f4fe6bf084b4ee48d1e349e2ad211c0a19cf73fe13e6767e1a84328e52c467,sampling/frames/APS-0031-9007-2025.jsonl
+APS,Physical Review A,2469-9926,2021,2317,dc781c391bdb57517d96aa52b5f996de24523662d82de68be3beb9248d1af0d2,sampling/frames/APS-2469-9926-2021.jsonl
+APS,Physical Review A,2469-9926,2022,2408,c390b2f7de1d8e7a590e3370ad393dc8441a93ddb41ef18e6b9eabefc2c10a83,sampling/frames/APS-2469-9926-2022.jsonl
+APS,Physical Review A,2469-9926,2023,2132,dd2130395510e7708331badca8565af7a74aa75f63c91ab6f7847ffe4f26f437,sampling/frames/APS-2469-9926-2023.jsonl
+APS,Physical Review A,2469-9926,2024,2554,ac94350ec44507260471aaedaa6ef29e4ad89bfbb8a9eeef8c9cffdf7314f301,sampling/frames/APS-2469-9926-2024.jsonl
+APS,Physical Review A,2469-9926,2025,2698,1473249e8057ab0e28ba500a83f50c6a6d52df1fce72c2c9c9b479361e149e13,sampling/frames/APS-2469-9926-2025.jsonl
+APS,Physical Review B,2469-9950,2021,5140,f5efaa16ddf48c882c2399913ddc2fcdcabaf3572661a7602785ca08317aa7c3,sampling/frames/APS-2469-9950-2021.jsonl
+APS,Physical Review B,2469-9950,2022,4904,169157a0cc58b1a16e8999fc482ab95e6d4f4c7b36bb3d36a24e9079f86e4fe4,sampling/frames/APS-2469-9950-2022.jsonl
+APS,Physical Review B,2469-9950,2023,5019,2caa73d14a36339011caabf40e855a5f3bc89a15ad1b583cc3699f1e477e61cb,sampling/frames/APS-2469-9950-2023.jsonl
+APS,Physical Review B,2469-9950,2024,5300,7f5c9775cb79a36f41a41cefcd081f26b857611614c8dc35fbc42df8905f441e,sampling/frames/APS-2469-9950-2024.jsonl
+APS,Physical Review B,2469-9950,2025,5677,8ca82c73c27060f169a158e3563ed157ad7f4d0079609a07ffa20be1c8834537,sampling/frames/APS-2469-9950-2025.jsonl
+APS,Physical Review D,2470-0010,2021,4105,b9f44663b20dc9e64f36fd9ecb22c2f307f21320905c8cf3c1315e6e06c08a03,sampling/frames/APS-2470-0010-2021.jsonl
+APS,Physical Review D,2470-0010,2022,4080,a941020e8469d02a61dc735c6a5082a83ca0ce7f81890f39c93047976be9bf06,sampling/frames/APS-2470-0010-2022.jsonl
+APS,Physical Review D,2470-0010,2023,4245,f6bd0c21ebf7eb1ff5cef46d102f67bb6511146fe656f29a56d7c102a7c45db2,sampling/frames/APS-2470-0010-2023.jsonl
+APS,Physical Review D,2470-0010,2024,4743,31b2248e455c6308c179c5b154fa93325ba6574036bf6fc4507a65e73aaabebe,sampling/frames/APS-2470-0010-2024.jsonl
+APS,Physical Review D,2470-0010,2025,5127,7da5b043dfcac1462b4e1102417116aeb0ca3ac73d73c0759ab122d9c847f9ba,sampling/frames/APS-2470-0010-2025.jsonl
+APS,Physical Review X,2160-3308,2021,271,faced5f27317e468948efccd10503e70aca8c0fbfc81c3262fc943cc9b9d3f2e,sampling/frames/APS-2160-3308-2021.jsonl
+APS,Physical Review X,2160-3308,2022,224,182bada274ae5093d9fba4a302eb487bb6d8965869fa70d6fdd3bb602738833c,sampling/frames/APS-2160-3308-2022.jsonl
+APS,Physical Review X,2160-3308,2023,194,4e76fee72dec3174509882172e35831d7e49b5d55ef5843706334dfdd6a0046e,sampling/frames/APS-2160-3308-2023.jsonl
+APS,Physical Review X,2160-3308,2024,243,467bcfd1e421db4a72f6357643493c4879cfbc1b4b3abc335462631acd7b5d50,sampling/frames/APS-2160-3308-2024.jsonl
+APS,Physical Review X,2160-3308,2025,311,c414b31ff520f92dbdaad75603a552ca9921d996a087106809ee15cb6200c114,sampling/frames/APS-2160-3308-2025.jsonl
+ELS,Journal of Cleaner Production,0959-6526,2021,5439,7d548156a2f5531436eee8815b2f0fdd7a011258ff75805e1091a18507be9c0e,sampling/frames/ELS-0959-6526-2021.jsonl
+ELS,Journal of Cleaner Production,0959-6526,2022,4862,8a2e0fa9ac8698d3864c97ec860a49ed93e0fd2b121d58611bfaf68ba22c7228,sampling/frames/ELS-0959-6526-2022.jsonl
+ELS,Journal of Cleaner Production,0959-6526,2023,4460,1d0a1518d62acd706fe762f7a14505913cccb7273c3ee42599147a1e40704365,sampling/frames/ELS-0959-6526-2023.jsonl
+ELS,Journal of Cleaner Production,0959-6526,2024,4575,f6c1964aebcb0e4bf3dbea29a7111eab433d0a735f1de6553de29533938bdd23,sampling/frames/ELS-0959-6526-2024.jsonl
+ELS,Journal of Cleaner Production,0959-6526,2025,2777,d0c87a3ec6b1ad5e3e4d6bf0e4c4b9a4464be4e7dc0a0225a5d9eb8786b8e10d,sampling/frames/ELS-0959-6526-2025.jsonl
+ELS,Artificial Intelligence,0004-3702,2021,112,4f8e2dcdbe39af2d50037d0b55d9ea60b2ecec4254f17ea1e63284dc6a4691f2,sampling/frames/ELS-0004-3702-2021.jsonl
+ELS,Artificial Intelligence,0004-3702,2022,124,9daae2ce15affab14ba4f910a87e6c88895abc0912e3c92656100d52411fe454,sampling/frames/ELS-0004-3702-2022.jsonl
+ELS,Artificial Intelligence,0004-3702,2023,156,12c5ead657e30e2532ba4576411b6183dc4f4eb293ae4c0ab3d54be96250afec,sampling/frames/ELS-0004-3702-2023.jsonl
+ELS,Artificial Intelligence,0004-3702,2024,124,39cb2436785d5218b409a68e0061c31738d6824c4c89681ab6ba47aeb04d2ffb,sampling/frames/ELS-0004-3702-2024.jsonl
+ELS,Artificial Intelligence,0004-3702,2025,116,506de4fb7fc81b14954376fbee84f9e61b6a6e2c096932ca4598490a7ed0f5de,sampling/frames/ELS-0004-3702-2025.jsonl
+ELS,Chemical Engineering Journal,1385-8947,2021,4700,f9b31de364bcdc869679f77d922ef2826d7654de51164f5b56e12f7b2b71e424,sampling/frames/ELS-1385-8947-2021.jsonl
+ELS,Chemical Engineering Journal,1385-8947,2022,6625,32240aa0befb8ed28f845f9a8232de1659d282cba67cf43e0b6d5f37eace5dd5,sampling/frames/ELS-1385-8947-2022.jsonl
+ELS,Chemical Engineering Journal,1385-8947,2023,8761,09321088f6096940d03d50323bce5128ac104bc98c5ccb9e05b960f6b5279220,sampling/frames/ELS-1385-8947-2023.jsonl
+ELS,Chemical Engineering Journal,1385-8947,2024,10671,58b26611fa4ec569b6311759354b49d3f1b1262dd7e62dcd84ac6de00e8fb38c,sampling/frames/ELS-1385-8947-2024.jsonl
+ELS,Chemical Engineering Journal,1385-8947,2025,13296,da83e6c22edf7771ad4631dbdf749e7b64c6ae0313bd90bd42e3c535633de3d4,sampling/frames/ELS-1385-8947-2025.jsonl
+ELS,Neuroscience,0306-4522,2021,489,5e8d2f2207bc37851fcd8d1af6f75aabf97ce76b628206024cc226bb9fad912d,sampling/frames/ELS-0306-4522-2021.jsonl
+ELS,Neuroscience,0306-4522,2022,421,a6a8685d4763b3db0da825ce1c94aab6d35c85978391a95a4cfe7441a36d86ff,sampling/frames/ELS-0306-4522-2022.jsonl
+ELS,Neuroscience,0306-4522,2023,378,59b727bc9bcea9727bd507a2c4dbcf5a426bc6631c1e73633e20464671b4d7d1,sampling/frames/ELS-0306-4522-2023.jsonl
+ELS,Neuroscience,0306-4522,2024,467,886353680466771e69c21b29186e432fbae867620b99cf609c4c5230348704ca,sampling/frames/ELS-0306-4522-2024.jsonl
+ELS,Neuroscience,0306-4522,2025,1054,dc78b50275dd26601147a9b2527310f63bab366b52abd5753874ecd57f2576a5,sampling/frames/ELS-0306-4522-2025.jsonl
+ELS,Renewable Energy,0960-1481,2021,1826,40328bd589f5555a13094469aad71755c80f77af224b4ed267b492f89425d799,sampling/frames/ELS-0960-1481-2021.jsonl
+ELS,Renewable Energy,0960-1481,2022,2054,c7e34cf456a8fbec0607bf04b8d433aba706bce131fae0b6195a4d9497e3ed07,sampling/frames/ELS-0960-1481-2022.jsonl
+ELS,Renewable Energy,0960-1481,2023,1564,032db6a30b7e288d00bbc8c66fc543e44e17c435ac3d991271740c385ea47ecd,sampling/frames/ELS-0960-1481-2023.jsonl
+ELS,Renewable Energy,0960-1481,2024,2148,64f9b902d14ab7fc3b7ac2b1046339d10d6f1ba5dd942ca708998a1ca0573d84,sampling/frames/ELS-0960-1481-2024.jsonl
+ELS,Renewable Energy,0960-1481,2025,1801,c94615df14321c630790fa03acbd042107d22b188182e8aff593aefff47201b5,sampling/frames/ELS-0960-1481-2025.jsonl
