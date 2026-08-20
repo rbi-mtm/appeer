@@ -1,6 +1,5 @@
 """Offline tests for the reproducible validation-study tooling."""
 
-import argparse
 import csv
 import json
 
@@ -9,7 +8,7 @@ from validation.scripts import common
 from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
-from validation.scripts.sample import SAMPLE_FIELDS, finalize
+from validation.scripts.sample import select
 
 
 PROVENANCE = {
@@ -120,11 +119,13 @@ def test_jats_history_keeps_online_and_accepted_manuscript_events():
     assert noncomparable == ['collection', 'print']
 
 
-def test_enriched_selection_requires_explicit_lifecycle_evidence(tmp_path):
+def test_confirmatory_selection_uses_only_population_frame(tmp_path, monkeypatch):
     study = {
+        'protocol_version': 2,
+        'seed': 'test-seed',
         'years': [2025],
-        'reference_enriched_per_cell': 3,
-        'development_enriched_per_cell': 1,
+        'population_random_per_cell': 10,
+        'development_random_per_cell': 4,
     }
     journals = [{'publisher': 'ACS', 'journal': 'Example', 'issn': '0000-0000'}]
     study_path = tmp_path / 'study.json'
@@ -132,44 +133,42 @@ def test_enriched_selection_requires_explicit_lifecycle_evidence(tmp_path):
     study_path.write_text(json.dumps(study), encoding='utf-8')
     journals_path.write_text(json.dumps(journals), encoding='utf-8')
 
-    candidates = []
-    for index in range(7):
-        candidates.append({
-            'doi': f'10.1000/random-{index}', 'publisher': 'ACS',
-            'journal': 'Example', 'issn': '0000-0000', 'year': '2025',
-            'cohort': 'population_random',
-            'split': 'development' if index < 3 else 'holdout',
-            'selection_rank': f'{index:064d}',
-        })
-    for index in range(5):
-        candidates.append({
-            'doi': f'10.1000/enriched-{index}', 'publisher': 'ACS',
-            'journal': 'Example', 'issn': '0000-0000', 'year': '2025',
-            'cohort': 'reference_candidate', 'split': 'unassigned',
-            'selection_rank': f'{index + 10:064d}',
-        })
-    candidate_path = tmp_path / 'candidates.csv'
-    write_csv(candidate_path, SAMPLE_FIELDS, candidates)
+    frame = tmp_path / 'ACS-0000-0000-2025.jsonl'
+    with frame.open('w', encoding='utf-8') as stream:
+        for index in range(12):
+            stream.write(json.dumps({
+                'doi': f'10.1000/random-{index}', 'publisher': 'ACS',
+                'journal': 'Example', 'issn': '0000-0000', 'year': '2025',
+                'article_type': 'journal-article',
+                'title': f'Article {index}',
+                'crossref_url': f'https://doi.org/10.1000/random-{index}',
+            }) + '\n')
 
-    observation_path = tmp_path / 'observations.csv'
-    fields = ['doi', 'target_field', 'status', 'explicit_or_inferred', 'precision']
-    write_csv(observation_path, fields, [{
-        'doi': f'10.1000/enriched-{index}', 'target_field': 'received',
-        'status': 'observed', 'explicit_or_inferred': 'explicit',
-        'precision': 'day',
-    } for index in range(3)])
+    monkeypatch.setattr(
+        'validation.scripts.sample.frame_path', lambda journal, year: frame)
+    (tmp_path / 'sampling').mkdir()
+    (tmp_path / 'sampling' / 'frame-manifest.csv').write_text(
+        'frame\n', encoding='utf-8')
+    monkeypatch.setattr('validation.scripts.sample.VALIDATION_ROOT', tmp_path)
 
     output = tmp_path / 'sample.csv'
-    finalize(argparse.Namespace(
-        study=study_path, journals=journals_path, candidates=candidate_path,
-        observations=observation_path, output=output))
+    class Args:
+        pass
+
+    args = Args()
+    args.study = study_path
+    args.journals = journals_path
+    args.output = output
+    select(args)
     with output.open(encoding='utf-8', newline='') as stream:
         rows = list(csv.DictReader(stream))
 
     assert len(rows) == 10
-    enriched = [row for row in rows if row['cohort'] == 'reference_enriched']
-    assert [row['split'] for row in enriched] == [
-        'development', 'holdout', 'holdout']
+    assert {row['cohort'] for row in rows} == {'population_random'}
+    assert [row['split'] for row in rows].count('development') == 4
+    assert [row['split'] for row in rows].count('holdout') == 6
+    manifest = json.loads((tmp_path / 'sample-manifest.json').read_text())
+    assert manifest['article_count'] == 10
 
 
 def sample_article(doi):

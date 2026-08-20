@@ -1,12 +1,9 @@
 {
-  "protocol_version": 1,
-  "seed": "appeer-validation-v1",
+  "protocol_version": 2,
+  "seed": "appeer-confirmatory-population-v1",
   "years": [2021, 2022, 2023, 2024, 2025],
-  "population_random_per_cell": 7,
-  "reference_enriched_per_cell": 3,
-  "development_random_per_cell": 3,
-  "development_enriched_per_cell": 1,
-  "candidate_reserve_per_cell": 40,
+  "population_random_per_cell": 10,
+  "development_random_per_cell": 4,
   "user_agent": "appeer-validation/0.1 (mailto:juraj.ovcar@gmail.com)",
   "request_timeout_seconds": 30,
   "minimum_request_interval_seconds": 0.34

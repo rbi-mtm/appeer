@@ -41,16 +41,14 @@ reconciled against the publisher archive, canonicalized, and deduplicated.
 
 Each of the 125 journal-year cells contributes ten articles:
 
-- seven population-random records, selected without regard to reference-source
-  availability;
-- three reference-enriched peer-reviewed records with at least one explicit
-  structured lifecycle reference.
+- ten population-random records selected without regard to reference-source
+  availability or article-history completeness.
 
-Within each cell, three random and one enriched articles form the development
-set; four random and two enriched articles form the locked holdout. Selection is
-the lowest deterministic SHA-256 rank under the seed in `config/study.json`.
-Frames, candidate reserves, exclusions, and hashes are retained. A sampled
-article is not replaced merely because it is inaccessible or difficult.
+Within each cell, the first four ranked articles form the development set and
+the remaining six form the locked holdout. Selection is the lowest deterministic
+SHA-256 rank under the seed in `config/study.json`. Frames, exclusions, and hashes
+are retained. A sampled article is not replaced merely because it is ineligible,
+inaccessible, difficult, or lacks reference metadata.
 
 The random cohort preserves corrections, editorials, letters, and other
 nonstandard content so false inclusion and rejection can be measured. Original
@@ -115,8 +113,8 @@ Report each date separately and preserve every denominator:
 - micro-averages and equal-journal macro-averages.
 
 Use Wilson intervals for binomial proportions and cluster bootstrap intervals
-for journal- and publisher-level quantities. Never combine the enriched and
-random cohorts into an unweighted headline value.
+for journal- and publisher-level quantities. All headline estimates use the
+frozen population sample and explicitly report the eligible analytic denominator.
 
 ## Missingness and bias
 

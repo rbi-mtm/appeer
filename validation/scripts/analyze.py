@@ -226,7 +226,8 @@ def truth_index(rows):
 
 def eligible(row):
     return row.get('eligibility', '').lower() in {
-        'eligible', 'original_research', 'review', 'methods'}
+        'eligible', 'original_research', 'methods', 'systematic_review',
+        'registered_report'}
 
 
 def accuracy_category(actual, expected):

@@ -1,6 +1,7 @@
 """Build immutable DOI frames and deterministic validation samples."""
 
 import argparse
+import datetime as dt
 import json
 from pathlib import Path
 
@@ -10,7 +11,6 @@ from validation.scripts.common import (
     canonical_doi,
     deterministic_rank,
     load_json,
-    read_csv,
     sha256_bytes,
     write_csv,
 )
@@ -18,8 +18,14 @@ from validation.scripts.common import (
 
 SAMPLE_FIELDS = [
     'doi', 'publisher', 'journal', 'issn', 'year', 'cohort', 'split',
-    'selection_rank', 'article_type', 'eligibility', 'oa_status', 'discipline',
+    'selection_rank', 'article_type', 'eligibility', 'exclusion_reason',
+    'eligibility_source', 'eligibility_notes', 'oa_status', 'discipline',
     'author_count', 'citation_style', 'title', 'crossref_url',
+]
+
+RECONCILIATION_FIELDS = [
+    'publisher', 'journal', 'issn', 'year', 'crossref_count',
+    'publisher_archive_count', 'status', 'reviewer', 'reviewed_at', 'notes',
 ]
 
 
@@ -113,6 +119,25 @@ def fetch(args):
          'path'],
         manifest,
     )
+    retrieved_at = dt.datetime.now(dt.timezone.utc).isoformat()
+    write_csv(
+        VALIDATION_ROOT / 'sampling' / 'frame-reconciliation.csv',
+        RECONCILIATION_FIELDS,
+        [{
+            'publisher': row['publisher'],
+            'journal': row['journal'],
+            'issn': row['issn'],
+            'year': row['year'],
+            'crossref_count': row['record_count'],
+            'publisher_archive_count': '',
+            'status': 'crossref_frame_frozen',
+            'reviewer': 'automated_crossref_frame',
+            'reviewed_at': retrieved_at,
+            'notes': (
+                'Complete Crossref ISSN/year journal-article query; publisher '
+                'archive count not asserted.'),
+        } for row in manifest],
+    )
 
 
 def ranked_frame(journal, year, seed):
@@ -135,8 +160,7 @@ def select(args):
         for year in study['years']:
             ranked = ranked_frame(journal, year, study['seed'])
             random_count = study['population_random_per_cell']
-            reserve_count = study['candidate_reserve_per_cell']
-            if len(ranked) < random_count + reserve_count:
+            if len(ranked) < random_count:
                 raise ValueError(
                     f"Insufficient frame for {journal['journal']} {year}: "
                     f'{len(ranked)} records')
@@ -146,53 +170,26 @@ def select(args):
                                 study['development_random_per_cell']
                                 else 'holdout')
                 rows.append(row)
-            for row in ranked[random_count:random_count + reserve_count]:
-                row['cohort'] = 'reference_candidate'
-                row['split'] = 'unassigned'
-                rows.append(row)
     write_csv(args.output, SAMPLE_FIELDS, rows)
-
-
-def finalize(args):
-    study = load_json(args.study)
-    rows = read_csv(args.candidates)
-    observations = read_csv(args.observations)
-    explicit = set()
-    for observation in observations:
-        if (observation['status'] == 'observed'
-                and observation['explicit_or_inferred'] == 'explicit'
-                and observation['target_field'] in {'received', 'accepted'}
-                and observation['precision'] == 'day'):
-            explicit.add(observation['doi'])
-
-    final_rows = [row for row in rows
-                  if row['cohort'] == 'population_random']
-    groups = {}
-    for row in rows:
-        if row['cohort'] != 'reference_candidate' or row['doi'] not in explicit:
-            continue
-        groups.setdefault((row['publisher'], row['issn'], row['year']), []).append(row)
-
-    required = study['reference_enriched_per_cell']
-    development = study['development_enriched_per_cell']
-    expected_groups = len(load_json(args.journals)) * len(study['years'])
-    if len(groups) != expected_groups:
-        raise ValueError(
-            'At least one journal-year has no explicit lifecycle candidates; '
-            'inspect source coverage before changing the sample.')
-    for key, candidates in groups.items():
-        chosen = sorted(candidates, key=lambda item: item['selection_rank'])[:required]
-        if len(chosen) < required:
-            raise ValueError(f'Only {len(chosen)} enriched candidates for {key}')
-        for index, row in enumerate(chosen):
-            row['cohort'] = 'reference_enriched'
-            row['split'] = 'development' if index < development else 'holdout'
-            final_rows.append(row)
-
-    final_rows.sort(key=lambda row: (
-        row['publisher'], row['journal'], row['year'], row['cohort'],
-        row['selection_rank']))
-    write_csv(args.output, SAMPLE_FIELDS, final_rows)
+    manifest = {
+        'created_at': dt.datetime.now(dt.timezone.utc).isoformat(),
+        'protocol_version': study['protocol_version'],
+        'seed': study['seed'],
+        'article_count': len(rows),
+        'development_count': sum(row['split'] == 'development' for row in rows),
+        'holdout_count': sum(row['split'] == 'holdout' for row in rows),
+        'sample_path': str(args.output.relative_to(VALIDATION_ROOT)),
+        'sample_sha256': sha256_bytes(args.output.read_bytes()),
+        'study_config_sha256': sha256_bytes(args.study.read_bytes()),
+        'journal_config_sha256': sha256_bytes(args.journals.read_bytes()),
+        'frame_manifest_sha256': sha256_bytes(
+            (VALIDATION_ROOT / 'sampling' / 'frame-manifest.csv').read_bytes()),
+    }
+    manifest_path = args.output.with_name('sample-manifest.json')
+    temporary = manifest_path.with_suffix('.json.tmp')
+    temporary.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    temporary.replace(manifest_path)
 
 
 def parser():
@@ -209,19 +206,8 @@ def parser():
     select_parser = subparsers.add_parser('select')
     select_parser.add_argument(
         '--output', type=Path,
-        default=root / 'sampling' / 'candidate-sample.csv')
-    select_parser.set_defaults(action=select)
-    finalize_parser = subparsers.add_parser('finalize')
-    finalize_parser.add_argument(
-        '--candidates', type=Path,
-        default=root / 'sampling' / 'candidate-sample.csv')
-    finalize_parser.add_argument(
-        '--observations', type=Path,
-        default=root / 'references' / 'observations.csv')
-    finalize_parser.add_argument(
-        '--output', type=Path,
         default=root / 'sampling' / 'sample.csv')
-    finalize_parser.set_defaults(action=finalize)
+    select_parser.set_defaults(action=select)
     return result
 
 

@@ -20,7 +20,7 @@
         "journal": {"type": "string", "minLength": 1},
         "issn": {"type": "string", "pattern": "^[0-9]{4}-[0-9X]{4}$"},
         "year": {"type": "integer", "minimum": 2021, "maximum": 2025},
-        "cohort": {"enum": ["population_random", "reference_enriched"]},
+        "cohort": {"const": "population_random"},
         "split": {"enum": ["development", "holdout"]}
       },
       "additionalProperties": true

@@ -372,7 +372,7 @@ def parser():
         default=VALIDATION_ROOT / 'config' / 'study.json')
     result.add_argument(
         '--sample', type=Path,
-        default=VALIDATION_ROOT / 'sampling' / 'candidate-sample.csv')
+        default=VALIDATION_ROOT / 'sampling' / 'sample.csv')
     result.add_argument(
         '--output', type=Path,
         default=VALIDATION_ROOT / 'references' / 'observations.csv')

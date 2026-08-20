@@ -30,10 +30,10 @@ def verify_configuration(study, journals):
         raise ValueError('Each publisher must contribute five journals')
     if study['years'] != [2021, 2022, 2023, 2024, 2025]:
         raise ValueError('The confirmatory years must remain 2021-2025')
-    if study['population_random_per_cell'] != 7:
+    if study['population_random_per_cell'] != 10:
         raise ValueError('Random allocation changed from the protocol')
-    if study['reference_enriched_per_cell'] != 3:
-        raise ValueError('Enriched allocation changed from the protocol')
+    if study['development_random_per_cell'] != 4:
+        raise ValueError('Development/holdout allocation changed from the protocol')
 
 
 def verify_sample(rows, study):
@@ -45,13 +45,13 @@ def verify_sample(rows, study):
     cells = Counter((row['publisher'], row['issn'], row['year'], row['cohort'])
                     for row in rows)
     for publisher, issn, year, cohort in cells:
-        expected = (study['population_random_per_cell']
-                    if cohort == 'population_random'
-                    else study['reference_enriched_per_cell'])
+        if cohort != 'population_random':
+            raise ValueError(f'Confirmatory sample contains selected cohort: {cohort}')
+        expected = study['population_random_per_cell']
         if cells[(publisher, issn, year, cohort)] != expected:
             raise ValueError(f'Unbalanced cell: {publisher} {issn} {year} {cohort}')
-    if len(cells) != 250:
-        raise ValueError('Every journal-year must contain both cohorts')
+    if len(cells) != 125:
+        raise ValueError('Every journal-year must contain one population cohort')
     splits = Counter(row['split'] for row in rows)
     if splits != {'development': 500, 'holdout': 750}:
         raise ValueError(f'Unexpected split totals: {dict(splits)}')
@@ -64,7 +64,8 @@ def verify_reconciliation(rows):
     if len(keys) != 125:
         raise ValueError('Frame reconciliation journal-years must be unique')
     for row in rows:
-        if row['status'] not in {'matched', 'explained_difference'}:
+        if row['status'] not in {
+                'matched', 'explained_difference', 'crossref_frame_frozen'}:
             raise ValueError(f"Unresolved frame reconciliation: {row['journal']} {row['year']}")
         if not row['reviewer'] or not row['reviewed_at']:
             raise ValueError('Every reconciliation requires reviewer provenance')
@@ -99,7 +100,8 @@ def verify_observations(rows):
 def verify_final(sample, labels, appeer):
     sample_dois = {row['doi'] for row in sample}
     eligibility_values = {
-        'original_research', 'review', 'methods', 'eligible', 'ineligible'}
+        'original_research', 'methods', 'systematic_review',
+        'registered_report', 'eligible', 'ineligible', 'uncertain'}
     for row in sample:
         if row['eligibility'] not in eligibility_values:
             raise ValueError(f"Unclassified article eligibility: {row['doi']}")
@@ -137,7 +139,8 @@ def verify_final(sample, labels, appeer):
 
 def parser():
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument('--stage', choices=['setup', 'sample', 'final'],
+    result.add_argument('--stage',
+                        choices=['setup', 'sample', 'harvest', 'final'],
                         default='setup')
     return result
 
@@ -147,11 +150,12 @@ def main():
     study = load_json(VALIDATION_ROOT / 'config' / 'study.json')
     journals = load_json(VALIDATION_ROOT / 'config' / 'journals.json')
     verify_configuration(study, journals)
-    if args.stage in {'sample', 'final'}:
+    if args.stage in {'sample', 'harvest', 'final'}:
         sample = read_csv(VALIDATION_ROOT / 'sampling' / 'sample.csv')
         verify_sample(sample, study)
         verify_reconciliation(read_csv(
             VALIDATION_ROOT / 'sampling' / 'frame-reconciliation.csv'))
+    if args.stage in {'harvest', 'final'}:
         observations = read_csv(
             VALIDATION_ROOT / 'references' / 'observations.csv')
         verify_observations(observations)
