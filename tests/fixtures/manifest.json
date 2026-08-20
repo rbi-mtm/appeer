@@ -1,4 +1,183 @@
 {
+  "acs_catalysis_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://pubs.acs.org/doi/10.1021/acscatal.5c01592",
+    "retrieved_at": "2026-08-20T08:06:17Z",
+    "sha256": "7eeb78c76b3c2f5ec12af0706a91694c1aa5db3c864f8f15081b443ca135723b",
+    "expected_parser": "Parser_ACS_ANY_txt",
+    "expected": {
+      "doi": "10.1021/acscatal.5c01592",
+      "publisher": "American Chemical Society",
+      "journal": "ACS Catalysis",
+      "title": "Kinetic Monte Carlo-Based Reactor Model Including Catalyst Shape Changes",
+      "publication_type": "Research Article",
+      "no_of_authors": 3,
+      "author_names": ["Yuqi Yang", "Anders Hellman", "Henrik Grönbeck"],
+      "affiliations": [
+        ["Department of Physics and Competence Centre for Catalysis, Göteborg, Sweden", "Chalmers University of Technology, Göteborg, Sweden"],
+        ["Department of Physics and Competence Centre for Catalysis, Göteborg, Sweden", "Chalmers University of Technology, Göteborg, Sweden"],
+        ["Department of Physics and Competence Centre for Catalysis, Göteborg, Sweden", "Chalmers University of Technology, Göteborg, Sweden"]
+      ],
+      "received": "March 03, 2025",
+      "accepted": "June 10, 2025",
+      "published": "June 18, 2025",
+      "normalized_received": "2025-03-03",
+      "normalized_accepted": "2025-06-10",
+      "normalized_published": "2025-06-18",
+      "normalized_publisher": "American Chemical Society",
+      "normalized_journal": "ACS Catalysis"
+    }
+  },
+  "acs_jacs_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://pubs.acs.org/doi/10.1021/jacs.5c11789",
+    "retrieved_at": "2026-08-20T08:06:17Z",
+    "sha256": "1598a314a315bed228b77b038222e076239098230b96b6c834670d7f69cd07d5",
+    "expected_parser": "Parser_ACS_ANY_txt",
+    "expected": {
+      "doi": "10.1021/jacs.5c11789",
+      "publisher": "American Chemical Society",
+      "journal": "Journal of the American Chemical Society",
+      "title": "MOF-ChemUnity: Literature-Informed Large Language Models for Metal–Organic Framework Research",
+      "publication_type": "Article",
+      "no_of_authors": 6,
+      "author_names": ["Thomas Michael Pruyn", "Amro Aswad", "Sartaaj Takrim Khan", "Ju Huang", "Robert Black", "Seyed Mohamad Moosavi"],
+      "affiliations": [
+        ["Chemical Engineering & Applied Chemistry, Toronto, Canada", "University of Toronto, Toronto, Canada"],
+        ["Chemical Engineering & Applied Chemistry, Toronto, Canada", "University of Toronto, Toronto, Canada"],
+        ["Chemical Engineering & Applied Chemistry, Toronto, Canada", "University of Toronto, Toronto, Canada"],
+        ["Chemical Engineering & Applied Chemistry, Toronto, Canada", "University of Toronto, Toronto, Canada"],
+        ["Clean Energy Innovation Research Centre (CEI), Mississauga, Canada", "National Research Council Canada, Mississauga, Canada"],
+        ["Chemical Engineering & Applied Chemistry, Toronto, Canada", "University of Toronto, Toronto, Canada", "Vector Institute for Artificial Intelligence, Toronto, Canada"]
+      ],
+      "received": "July 10, 2025",
+      "accepted": "October 14, 2025",
+      "published": "November 10, 2025",
+      "normalized_received": "2025-07-10",
+      "normalized_accepted": "2025-10-14",
+      "normalized_published": "2025-11-10",
+      "normalized_publisher": "American Chemical Society",
+      "normalized_journal": "Journal of the American Chemical Society"
+    }
+  },
+  "aps_pra_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://journals.aps.org/pra/abstract/10.1103/PhysRevA.111.042608",
+    "retrieved_at": "2026-08-20T08:06:17Z",
+    "sha256": "7e497bf89563e9c9bbb47dc4df574e875e813960d3b7a75a6d9391daa7d1785e",
+    "expected_parser": "Parser_APS_ANY_txt",
+    "expected": {
+      "doi": "10.1103/physreva.111.042608",
+      "publisher": "American Physical Society",
+      "journal": "Physical Review A",
+      "title": "Unifying quantum spatial search, state transfer, and uniform sampling on graphs",
+      "publication_type": "Article",
+      "no_of_authors": 4,
+      "author_names": ["Qingwen Wang", "Ying Jiang", "Shiguang Feng", "Lvzhou Li"],
+      "affiliations": [
+        ["School of Computer Science and Engineering, Sun Yat-sen University, Guangzhou 510006, China"],
+        ["School of Computer Science and Engineering, Sun Yat-sen University, Guangzhou 510006, China"],
+        ["School of Computer Science and Engineering, Sun Yat-sen University, Guangzhou 510006, China"],
+        ["School of Computer Science and Engineering, Sun Yat-sen University, Guangzhou 510006, China and Quantum Science Center of Guangdong-Hong Kong-Macao Greater Bay Area, Shenzhen 518045, China"]
+      ],
+      "received": "18 August 2024",
+      "accepted": "25 March 2025",
+      "published": "2025/04/09",
+      "normalized_received": "2024-08-18",
+      "normalized_accepted": "2025-03-25",
+      "normalized_published": "2025-04-09",
+      "normalized_publisher": "American Physical Society",
+      "normalized_journal": "Physical Review A"
+    }
+  },
+  "aps_prb_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://journals.aps.org/prb/abstract/10.1103/PhysRevB.111.235409",
+    "retrieved_at": "2026-08-20T08:06:17Z",
+    "sha256": "5235a8bb9e7f3ec03f6efa668d41342671fb014ead508602e0f536207bd184a9",
+    "expected_parser": "Parser_APS_ANY_txt",
+    "expected": {
+      "doi": "10.1103/physrevb.111.235409",
+      "publisher": "American Physical Society",
+      "journal": "Physical Review B",
+      "title": "Majorana sweet spots in three-site Kitaev chains",
+      "publication_type": "Article",
+      "no_of_authors": 3,
+      "author_names": ["Rodrigo A. Dourado", "Martin Leijnse", "Rubén Seoane Souto"],
+      "affiliations": [
+        ["Instituto de Física de São Carlos, Universidade de São Paulo, 13560-970 São Carlos, São Paulo, Brazil"],
+        ["Division of Solid State Physics and NanoLund, Lund University, S-22100 Lund, Sweden"],
+        ["Instituto de Ciencia de Materiales de Madrid (ICMM), Consejo Superior de Investigaciones Científicas (CSIC), Sor Juana Inés de la Cruz 3, 28049 Madrid, Spain"]
+      ],
+      "received": "12 March 2025",
+      "accepted": "21 May 2025",
+      "published": "2025-06-03",
+      "normalized_received": "2025-03-12",
+      "normalized_accepted": "2025-05-21",
+      "normalized_published": "2025-06-03",
+      "normalized_publisher": "American Physical Society",
+      "normalized_journal": "Physical Review B"
+    }
+  },
+  "elsevier_cleaner_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://www.sciencedirect.com/science/article/pii/S0959652625013605",
+    "retrieved_at": "2026-08-20T08:06:17Z",
+    "sha256": "45b409ee33c60950b5f978415e7477242b8e7afb316f4ebe12ff430a7f6306b3",
+    "expected_parser": "Parser_ELS_ANY_txt",
+    "expected": {
+      "doi": "10.1016/j.jclepro.2025.146010",
+      "publisher": "Elsevier",
+      "journal": "Journal of Cleaner Production",
+      "title": "Optimal network design for cloud infrastructures considering sustainable utilization of excess heat",
+      "publication_type": "Research article",
+      "no_of_authors": 2,
+      "author_names": ["Lydia Hilarius", "Tristan Becker"],
+      "affiliations": [
+        ["TU Dresden, Faculty of Business and Economics, Junior Professorship of Management Science, Germany"],
+        ["TU Dresden, Faculty of Business and Economics, Junior Professorship of Management Science, Germany"]
+      ],
+      "received": "5 May 2024",
+      "accepted": "16 June 2025",
+      "published": "11 July 2025",
+      "normalized_received": "2024-05-05",
+      "normalized_accepted": "2025-06-16",
+      "normalized_published": "2025-07-11",
+      "normalized_publisher": "Elsevier",
+      "normalized_journal": "Journal of Cleaner Production"
+    }
+  },
+  "elsevier_trac_current_article.html": {
+    "fixture_kind": "reduced current-layout snapshot",
+    "source_url": "https://www.sciencedirect.com/science/article/pii/S0165993625000330",
+    "retrieved_at": "2026-08-20T08:06:17Z",
+    "sha256": "c1ca6923aa1c7c28ca0b576ab1c9313bfc6e932a76e3c5489e33825e75e2d56f",
+    "expected_parser": "Parser_ELS_ANY_txt",
+    "expected": {
+      "doi": "10.1016/j.trac.2025.118165",
+      "publisher": "Elsevier",
+      "journal": "TrAC Trends in Analytical Chemistry",
+      "title": "Recent developments of small-molecule fluorescent probes for the detection of hydroxyl radical in biological systems",
+      "publication_type": "Review article",
+      "no_of_authors": 5,
+      "author_names": ["Shan-Shan Zhang", "Heejeong Kim", "Yongqing Zhou", "Heemin Kang", "Juyoung Yoon"],
+      "affiliations": [
+        ["College of Chemistry, Chemical Engineering and Materials Science, Collaborative Innovation Center of Functionalized Probes for Chemical Imaging in Universities of Shandong, Key Laboratory of Molecular and Nano Probes, Ministry of Education, Shandong Normal University, Jinan, 250014, People's Republic of China"],
+        ["Department of Chemistry and Nanoscience, Ewha Womans University, Seoul, 03760, South Korea"],
+        ["School of Chemistry and Chemical Engineering, University of Jinan, Jinan, 250022, People's Republic of China"],
+        ["Department of Materials Science and Engineering, Korea University, Seoul, 02841, South Korea"],
+        ["Department of Chemistry and Nanoscience, Ewha Womans University, Seoul, 03760, South Korea", "Gradutate Program in Innovative Biomaterials Convergence, Ewha Womans University, Seoul, 03760, South Korea"]
+      ],
+      "received": "17 November 2024",
+      "accepted": "26 January 2025",
+      "published": "10 February 2025",
+      "normalized_received": "2024-11-17",
+      "normalized_accepted": "2025-01-26",
+      "normalized_published": "2025-02-10",
+      "normalized_publisher": "Elsevier",
+      "normalized_journal": "TrAC Trends in Analytical Chemistry"
+    }
+  },
   "nature_block_page.html": {
     "fixture_kind": "synthetic non-article response",
     "source_url": "https://www.nature.com/articles/example",

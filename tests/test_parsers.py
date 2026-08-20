@@ -8,6 +8,9 @@ import pytest
 
 from appeer.parse.parsers.preparser import Preparser
 from appeer.parse.parsers import parser as parser_module
+from appeer.parse.parsers.ACS.parser_ACS_ANY_txt import Parser_ACS_ANY_txt
+from appeer.parse.parsers.APS.parser_APS_ANY_txt import Parser_APS_ANY_txt
+from appeer.parse.parsers.ELS.parser_ELS_ANY_txt import Parser_ELS_ANY_txt
 from appeer.parse.parsers.NAT.parser_NAT_ANY_txt import Parser_NAT_ANY_txt
 from appeer.parse.parsers.RSC.parser_RSC_ANY_txt import Parser_RSC_ANY_txt
 
@@ -20,6 +23,12 @@ def load_manifest():
 
 
 @pytest.mark.parametrize('fixture_name', [
+    'acs_catalysis_current_article.html',
+    'acs_jacs_current_article.html',
+    'aps_pra_current_article.html',
+    'aps_prb_current_article.html',
+    'elsevier_cleaner_current_article.html',
+    'elsevier_trac_current_article.html',
     'nature_block_page.html',
     'nature_current_article.html',
     'rsc_current_article.html',
@@ -32,6 +41,12 @@ def test_fixture_hashes_match_verified_manifest(fixture_name):
 
 
 @pytest.mark.parametrize(('fixture_name', 'parser_class'), [
+    ('acs_catalysis_current_article.html', Parser_ACS_ANY_txt),
+    ('acs_jacs_current_article.html', Parser_ACS_ANY_txt),
+    ('aps_pra_current_article.html', Parser_APS_ANY_txt),
+    ('aps_prb_current_article.html', Parser_APS_ANY_txt),
+    ('elsevier_cleaner_current_article.html', Parser_ELS_ANY_txt),
+    ('elsevier_trac_current_article.html', Parser_ELS_ANY_txt),
     ('rsc_current_article.html', Parser_RSC_ANY_txt),
     ('nature_current_article.html', Parser_NAT_ANY_txt),
 ])
@@ -57,6 +72,47 @@ def test_non_articles_are_not_assigned_a_parser(fixture_name):
     parser_class, loaded = Preparser(str(FIXTURES / fixture_name)).determine_parser()
     assert parser_class is None
     assert loaded is None
+
+
+@pytest.mark.parametrize(('fixture_name', 'parser_class'), [
+    ('acs_jacs_current_article.html', Parser_ACS_ANY_txt),
+    ('aps_pra_current_article.html', Parser_APS_ANY_txt),
+    ('elsevier_trac_current_article.html', Parser_ELS_ANY_txt),
+])
+def test_preparser_routes_new_publishers(fixture_name, parser_class):
+    selected, loaded = Preparser(str(FIXTURES / fixture_name)).determine_parser()
+
+    assert selected is parser_class
+    assert loaded is not None
+
+
+def test_acs_published_online_is_published_not_issue_date():
+    parser = Parser_ACS_ANY_txt(
+        str(FIXTURES / 'acs_jacs_current_article.html'))
+
+    assert parser.published == 'November 10, 2025'
+    assert parser.normalized_published == '2025-11-10'
+    assert 'November 26, 2025' in parser._input_data.get_text(' ', strip=True)
+
+
+def test_sciencedirect_requires_version_of_record_date(tmp_path):
+    source = (FIXTURES / 'elsevier_trac_current_article.html').read_text(
+        encoding='utf-8')
+    without_version_of_record = tmp_path / 'available-online-only.html'
+    without_version_of_record.write_text(
+        source.replace('"Version of Record":"10 February 2025"',
+                       '"Unrelated date":"10 February 2025"'),
+        encoding='utf-8',
+    )
+
+    parser = Parser_ELS_ANY_txt(str(without_version_of_record))
+
+    assert parser.received == '17 November 2024'
+    assert parser.accepted == '26 January 2025'
+    assert parser.published is None
+    assert not parser.success
+    assert 'published' in parser.invalid_fields
+    assert 'normalized_published' in parser.invalid_fields
 
 
 def test_invalid_doi_is_a_hard_failure_but_partial_fields_remain(tmp_path):

@@ -1,0 +1,22 @@
+{
+  "ACS_0": {
+    "normalized_name": "Journal of the American Chemical Society",
+    "name_variants": ["Journal of the American Chemical Society"]
+  },
+  "ACS_1": {
+    "normalized_name": "ACS Nano",
+    "name_variants": ["ACS Nano"]
+  },
+  "ACS_2": {
+    "normalized_name": "ACS Catalysis",
+    "name_variants": ["ACS Catalysis"]
+  },
+  "ACS_3": {
+    "normalized_name": "Analytical Chemistry",
+    "name_variants": ["Analytical Chemistry"]
+  },
+  "ACS_4": {
+    "normalized_name": "Environmental Science & Technology",
+    "name_variants": ["Environmental Science & Technology"]
+  }
+}

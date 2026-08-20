@@ -1,6 +1,7 @@
 """Stable structured metadata helpers used by supported publishers."""
 
 import datetime
+import html
 import json
 import re
 
@@ -103,6 +104,8 @@ def citation_authors(soup):
             affiliations.append([])
             current = affiliations[-1]
         elif key == 'citation_author_institution' and current is not None and value:
+            value = normalize_whitespace(re.sub(
+                r'<[^>]+>', '', html.unescape(value)))
             if value not in current:
                 current.append(value)
     if not names or not all(affiliations):
@@ -120,10 +123,34 @@ def history_date(soup, label):
         time = item.find('time')
         if time and time.get('datetime'):
             return time['datetime'][:10]
-        matches = date_utils.get_d_M_y(text)
-        if matches:
-            return matches[0]
+        match = explicit_date(text)
+        if match:
+            return match
     return None
+
+
+def explicit_date(text):
+    """Return an explicitly formatted calendar date from labelled text."""
+
+    value = normalize_whitespace(text)
+    if not value:
+        return None
+
+    iso_match = re.search(r'\b\d{4}-\d{2}-\d{2}\b', value)
+    if iso_match:
+        return iso_match.group()
+
+    day_first = date_utils.get_d_M_y(value)
+    if day_first:
+        return day_first[0]
+
+    months = '|'.join(date_utils._M_map()) # pylint: disable=protected-access
+    month_first = re.search(
+        rf'\b(?:{months})\s+\d{{1,2}},\s+\d{{4}}\b',
+        value,
+        re.IGNORECASE,
+    )
+    return month_first.group() if month_first else None
 
 
 def normalize_date(value):
@@ -133,8 +160,105 @@ def normalize_date(value):
         return None
     try:
         return datetime.date.fromisoformat(value).isoformat()
-    except ValueError:
-        return date_utils.normalize_d_M_y(value)
+    except (TypeError, ValueError):
+        normalized = date_utils.normalize_d_M_y(value)
+        if normalized:
+            return normalized
+
+    for date_format in ('%B %d, %Y', '%b %d, %Y'):
+        try:
+            return datetime.datetime.strptime(value, date_format).date().isoformat()
+        except ValueError:
+            continue
+    return None
+
+
+def assigned_json(soup, variable):
+    """Load a JSON object assigned to a named JavaScript window variable."""
+
+    marker = f'window.{variable}'
+    decoder = json.JSONDecoder()
+    for script in soup.find_all('script'):
+        text = script.string or script.get_text()
+        marker_index = text.find(marker)
+        if marker_index < 0:
+            continue
+        equals_index = text.find('=', marker_index + len(marker))
+        if equals_index < 0:
+            continue
+        candidate = text[equals_index + 1:].lstrip()
+        try:
+            value, _ = decoder.raw_decode(candidate)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            return value
+    return {}
+
+
+def science_direct_authors(author_data):
+    """Read ScienceDirect's structured author-to-affiliation relationships."""
+
+    if not isinstance(author_data, dict):
+        return None, None
+
+    affiliation_nodes = author_data.get('affiliations', {})
+    affiliations_by_id = {}
+    if isinstance(affiliation_nodes, dict):
+        for identifier, node in affiliation_nodes.items():
+            value = _science_direct_affiliation(node)
+            if value:
+                affiliations_by_id[identifier] = value
+
+    authors = []
+    author_affiliations = []
+    content = author_data.get('content', ())
+    for group in content if isinstance(content, list) else ():
+        if not isinstance(group, dict) or group.get('#name') != 'author-group':
+            continue
+        for node in group.get('$$', ()):
+            if not isinstance(node, dict) or node.get('#name') != 'author':
+                continue
+            children = node.get('$$', ())
+            given = _science_direct_child_text(children, 'given-name')
+            surname = _science_direct_child_text(children, 'surname')
+            name = normalize_whitespace(' '.join(
+                part for part in (given, surname) if part))
+            references = []
+            for child in children:
+                if not isinstance(child, dict) or child.get('#name') != 'cross-ref':
+                    continue
+                reference = child.get('$', {}).get('refid')
+                if reference in affiliations_by_id and reference not in references:
+                    references.append(reference)
+            if not references and len(affiliations_by_id) == 1:
+                references = list(affiliations_by_id)
+            if not name:
+                continue
+            authors.append(name)
+            author_affiliations.append([
+                affiliations_by_id[reference] for reference in references])
+
+    if not authors:
+        return None, None
+    if not all(author_affiliations):
+        return authors, None
+    return authors, author_affiliations
+
+
+def _science_direct_child_text(children, name):
+    for child in children if isinstance(children, list) else ():
+        if isinstance(child, dict) and child.get('#name') == name:
+            return normalize_whitespace(child.get('_'))
+    return None
+
+
+def _science_direct_affiliation(node):
+    if not isinstance(node, dict):
+        return None
+    children = node.get('$$', ())
+    return (_science_direct_child_text(children, 'textfn')
+            or _science_direct_child_text(children, 'source-text'))
 
 
 def labelled_date_in_text(soup, label):

@@ -1,0 +1,26 @@
+{
+  "APS_0": {
+    "normalized_name": "Physical Review Letters",
+    "name_variants": ["Physical Review Letters"]
+  },
+  "APS_1": {
+    "normalized_name": "Physical Review A",
+    "name_variants": ["Physical Review A"]
+  },
+  "APS_2": {
+    "normalized_name": "Physical Review B",
+    "name_variants": ["Physical Review B"]
+  },
+  "APS_3": {
+    "normalized_name": "Physical Review D",
+    "name_variants": ["Physical Review D"]
+  },
+  "APS_4": {
+    "normalized_name": "Physical Review E",
+    "name_variants": ["Physical Review E"]
+  },
+  "APS_5": {
+    "normalized_name": "Physical Review X",
+    "name_variants": ["Physical Review X"]
+  }
+}

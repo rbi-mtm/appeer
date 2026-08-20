@@ -1,0 +1,34 @@
+{
+  "ELS_0": {
+    "normalized_name": "TrAC Trends in Analytical Chemistry",
+    "name_variants": ["TrAC Trends in Analytical Chemistry"]
+  },
+  "ELS_1": {
+    "normalized_name": "Journal of Cleaner Production",
+    "name_variants": ["Journal of Cleaner Production"]
+  },
+  "ELS_2": {
+    "normalized_name": "Artificial Intelligence",
+    "name_variants": ["Artificial Intelligence"]
+  },
+  "ELS_3": {
+    "normalized_name": "Chemical Engineering Journal",
+    "name_variants": ["Chemical Engineering Journal"]
+  },
+  "ELS_4": {
+    "normalized_name": "Neuroscience",
+    "name_variants": ["Neuroscience"]
+  },
+  "ELS_5": {
+    "normalized_name": "Renewable Energy",
+    "name_variants": ["Renewable Energy"]
+  },
+  "ELS_6": {
+    "normalized_name": "Computers in Human Behavior",
+    "name_variants": ["Computers in Human Behavior"]
+  },
+  "ELS_7": {
+    "normalized_name": "The Lancet",
+    "name_variants": ["The Lancet"]
+  }
+}

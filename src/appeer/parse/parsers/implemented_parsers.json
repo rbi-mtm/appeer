@@ -2,6 +2,33 @@
 
 	{
 
+		"ACS": {
+			"web":			"pubs.acs.org",
+			"publisher_full_name":	"American Chemical Society",
+			"journal":		"ANY",
+			"journal_full_name":	"Any",
+			"dtype":		"txt",
+			"description":		"Any current ACS Publications journal"
+			},
+
+		"APS": {
+			"web":			"journals.aps.org",
+			"publisher_full_name":	"American Physical Society",
+			"journal":		"ANY",
+			"journal_full_name":	"Any",
+			"dtype":		"txt",
+			"description":		"Any current APS journal"
+			},
+
+		"ELS": {
+			"web":			"www.sciencedirect.com",
+			"publisher_full_name":	"Elsevier",
+			"journal":		"ANY",
+			"journal_full_name":	"Any",
+			"dtype":		"txt",
+			"description":		"Any verified current ScienceDirect journal"
+			},
+
 		"RSC": {
 			"web":			"pubs.rsc.org",
 			"publisher_full_name":	"Royal Society of Chemistry",
