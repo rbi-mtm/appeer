@@ -1,6 +1,7 @@
 """Create a scrape plan from a list of URLs"""
 
 import sys
+from urllib.parse import urlsplit
 
 from functools import cached_property
 from collections import Counter
@@ -51,22 +52,22 @@ class ScrapePlan:
         domains = []
 
         for url in self.url_list:
+            parsed = None
+            try:
+                parsed = urlsplit(url)
+                hostname = parsed.hostname
+                invalid_port = parsed.port not in (None, 443)
+            except ValueError:
+                hostname = None
+                invalid_port = True
 
-            if not url.startswith('https://'):
+            if (parsed is None or parsed.scheme != 'https' or not hostname or invalid_port
+                    or parsed.username is not None or parsed.password is not None):
                 domains.append('invalid_url')
-
+            elif hostname in self._jsm.strategy_map:
+                domains.append(hostname)
             else:
-
-                url_split = url.split('https://')[1]
-
-                for defined_domain in self._jsm.strategy_map:
-
-                    if url_split.startswith(defined_domain):
-                        domains.append(defined_domain)
-                        break
-
-                else:
-                    domains.append('unknown')
+                domains.append('unknown')
 
         return domains
 

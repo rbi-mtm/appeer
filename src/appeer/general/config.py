@@ -104,7 +104,9 @@ class Config:
                 'sleep_time': 1.0,
                 'max_tries': 3,
                 'retry_sleep_time': 10.0,
-                '429_sleep_time': 5.0
+                '429_sleep_time': 5.0,
+                'timeout': 30.0,
+                'user_agent': 'appeer/0.0.1 (scientific metadata client; contact: juraj.ovcar@gmail.com)'
                 }
 
     def create_config_file(self):

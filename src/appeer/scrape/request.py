@@ -1,163 +1,132 @@
-"""Send requests, get and handle responses"""
+"""Bounded, rate-limit-aware HTTP retrieval."""
 
+import datetime
+from email.utils import parsedate_to_datetime
 import time
-import requests
 
 import click
+import requests
 
+from appeer import __version__
 from appeer.general import log as _log
 from appeer.general.config import Config
 from appeer.scrape import scrape_reports as reports
 
+
+DEFAULT_USER_AGENT = (
+    f'appeer/{__version__} (scientific metadata client; '
+    'contact: juraj.ovcar@gmail.com)'
+)
+
+
 class Request:
-    """
-    Send requests, get and handle responses
+    """Send one bounded request sequence and retain its final outcome."""
 
-    """
-
-    def __init__(self, url, _queue=None):
-        """
-        Initializes a Request instance
-    
-        Parameters
-        ----------
-        url : str
-            URL string
-        _queue : queue.Queue
-            If given, messages will be logged in the job log file
-   
-        """
-
+    def __init__(self, url, _queue=None, session=None, sleeper=None,
+                 user_agent=None):
         self._queue = _queue
-
+        self._session = session or requests
+        self._sleep = sleeper or time.sleep
+        self.user_agent = user_agent
         self.url = url
-
         self.success = False
         self.status = None
         self.error = None
         self.response = None
 
     def send(self, head=False, **kwargs):
-        """
-        Sends a request to get the content of ``self.url``
+        settings = Config().settings or {}
+        defaults = settings.get('ScrapeDefaults', {})
+        max_tries = int(kwargs.get('max_tries', defaults.get('max_tries', 3)))
+        retry_sleep = float(kwargs.get(
+            'retry_sleep_time', defaults.get('retry_sleep_time', 10)))
+        timeout = float(kwargs.get('timeout', defaults.get('timeout', 30)))
+        fallback_429 = float(kwargs.get(
+            'rate_limit_sleep_time', defaults.get('429_sleep_time', 5)))
+        validate_article = kwargs.get('validate_article', not head)
+        user_agent = (kwargs.get('user_agent') or self.user_agent
+                      or defaults.get('user_agent') or DEFAULT_USER_AGENT)
 
-        Parameters
-        -------
-        head : bool
-            If True, get just the response header with allowed redirects
-                (useful when resolving DOI)
+        if max_tries < 1:
+            raise ValueError('max_tries must be at least one.')
 
-        Keyword Arguments
-        -----------------
-        max_tries : int
-            Maximum number of tries to get a response from an URL before
-                giving up
-        retry_sleep_time : float
-            Time (in seconds) to wait before trying a nonresponsive URL again
-        _429_sleep_time : float
-            Time (in minutes) to wait if received a 429 status code
-
-        """
-
-        headers = requests.utils.default_headers()
-        headers.update({'User-Agent': 'My User Agent 1.0'})
-
-        scrape_defaults = Config().settings['ScrapeDefaults']
-
-        kwargs.setdefault('max_tries',
-                int(scrape_defaults['max_tries']))
-        kwargs.setdefault('retry_sleep_time',
-                float(scrape_defaults['retry_sleep_time']))
-        kwargs.setdefault('_429_sleep_time',
-                float(scrape_defaults['429_sleep_time']))
-
-        max_tries = kwargs['max_tries']
-        retry_sleep_time = kwargs['retry_sleep_time']
-        _429_sleep_time = kwargs['_429_sleep_time']
-
-        for i in range(max_tries):
-
-            self._rprint(_log.underlined_message(f'HTTPS Request {i+1}/{max_tries}'))
-
+        headers = {'User-Agent': user_agent, 'Accept': 'text/html,application/xhtml+xml'}
+        for attempt in range(max_tries):
+            self._rprint(_log.underlined_message(
+                f'HTTPS Request {attempt + 1}/{max_tries}'))
             try:
+                method = self._session.head if head else self._session.get
+                self.response = method(
+                    self.url,
+                    headers=headers,
+                    timeout=timeout,
+                    allow_redirects=True,
+                )
+                self.status = self.response.status_code
 
-                if head:
-                    self.response = requests.head(self.url,
-                            headers=headers,
-                            timeout=30,
-                            allow_redirects=True)
-
-                else:
-                    self.response = requests.get(self.url,
-                            headers=headers,
-                            timeout=30)
-
-                if self.response.status_code == 429:
-
-                    self.status = self.response.status_code
+                if self.status == 429:
                     self.error = 'Too many requests'
-
                     self._rprint(reports.requests_report(self))
-                    self._rprint(f'Got a 429 status code; sleeping for {_429_sleep_time} minutes and trying again...\n')
-                    time.sleep(_429_sleep_time * 60)
-
+                    if attempt < max_tries - 1:
+                        self._sleep(self._retry_after_seconds(
+                            self.response, fallback_429))
                     continue
 
-                try:
-                    self.response.raise_for_status()
-
-                except requests.exceptions.HTTPError as err:
-
-                    self.success = False
-                    self.status = err.response.status_code
-                    self.error = None
-
+                if not 200 <= self.status < 300:
+                    self.error = f'HTTP {self.status}'
+                elif validate_article and not self._is_article_response(self.response):
+                    self.error = 'Response is not a supported article page'
                 else:
-
                     self.success = True
-                    self.status = self.response.status_code
                     self.error = None
 
-            except requests.exceptions.ConnectionError as err:
-
-                self.success = False
+            except (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout) as exc:
                 self.status = None
-                self.error = type(err).__name__
-
-            except requests.exceptions.Timeout as err:
-
-                self.success = False
-                self.status = None
-                self.error = type(err).__name__
+                self.error = type(exc).__name__
 
             self._rprint(reports.requests_report(self))
-
             if self.success:
-                break
+                return
+            if attempt < max_tries - 1:
+                self._sleep(retry_sleep)
 
-            if i < (max_tries - 1):
-                time.sleep(retry_sleep_time)
+        self.success = False
+        self._rprint('Scraping failed.\n')
 
-        else:
-            self.success = False
-            self._rprint('Scraping failed.\n')
+    @staticmethod
+    def _is_article_response(response):
+        content_type = response.headers.get('Content-Type', '').casefold()
+        text = response.text or ''
+        if content_type and 'html' not in content_type:
+            return False
+        has_doi = 'citation_doi' in text.casefold()
+        has_supported_publisher = (
+            'royal society of chemistry' in text.casefold()
+            or 'nature publishing group' in text.casefold()
+            or 'springer nature' in text.casefold()
+        )
+        return has_doi and has_supported_publisher
+
+    @staticmethod
+    def _retry_after_seconds(response, fallback):
+        value = response.headers.get('Retry-After')
+        if not value:
+            return fallback
+        try:
+            return max(0.0, float(value))
+        except ValueError:
+            try:
+                retry_at = parsedate_to_datetime(value)
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=datetime.UTC)
+                return max(0.0, (
+                    retry_at - datetime.datetime.now(datetime.UTC)).total_seconds())
+            except (TypeError, ValueError, OverflowError):
+                return fallback
 
     def _rprint(self, message):
-        """
-        Prints a ``message`` to stdout or puts it in the queue
-        
-        If the message is put into the queue, it will be logged in
-            the job log file
-
-        Parameters
-        ----------
-        message : str
-            String to be printed to stdout or logged in the job log file
-
-        """
-
         if self._queue:
             self._queue.put(message)
-
         else:
             click.echo(message)

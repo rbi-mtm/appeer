@@ -168,20 +168,9 @@ def get_doi_substring(entry):
 
     """
 
-    if not isinstance(entry, str):
-        doi = None
+    from appeer.parse.metadata import normalize_doi
 
-    else:
-
-        _doi = re.findall(r'10\.\S+/\S+', entry)
-
-        if _doi:
-            doi = _doi[0]
-
-        else:
-            doi = None
-
-    return doi
+    return normalize_doi(entry)
 
 def check_doi_format(entry):
     """
@@ -199,12 +188,9 @@ def check_doi_format(entry):
 
     """
 
-    starts_w_10 = entry.startswith('10')
-    has_prefix_suffix = len(re.split(r'^10\.|/', entry)) == 3
+    from appeer.parse.metadata import normalize_doi
 
-    is_doi_format = starts_w_10 and has_prefix_suffix
-
-    return is_doi_format
+    return normalize_doi(entry) is not None
 
 def aff_list2str(aff_list):
     """
@@ -562,8 +548,19 @@ def extract_archive(zip_filename, target_directory):
         except PermissionError:
             return success
 
+    target_root = os.path.realpath(target_directory)
     with zipfile.ZipFile(zip_filename, 'r') as unzipper:
-        unzipper.extractall(path=target_directory)
+        for member in unzipper.infolist():
+            member_target = os.path.realpath(
+                os.path.join(target_root, member.filename))
+            if os.path.commonpath((target_root, member_target)) != target_root:
+                raise ValueError(
+                    f'Unsafe archive member escapes target: {member.filename}')
+            mode = member.external_attr >> 16
+            if (mode & 0o170000) == 0o120000:
+                raise ValueError(
+                    f'Archive symlinks are not supported: {member.filename}')
+        unzipper.extractall(path=target_root)
 
     success = True
 

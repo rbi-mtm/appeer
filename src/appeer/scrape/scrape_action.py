@@ -208,7 +208,7 @@ class ScrapeAction(Action, action_type='scrape'): #pylint:disable=too-many-insta
         """
 
         request = Request(url=self.url, _queue=self._queue)
-        request.send(**kwargs)
+        request.send(head=True, validate_article=False, **kwargs)
 
         if request.success:
 
