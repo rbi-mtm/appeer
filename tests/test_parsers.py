@@ -95,24 +95,28 @@ def test_acs_published_online_is_published_not_issue_date():
     assert 'November 26, 2025' in parser._input_data.get_text(' ', strip=True)
 
 
-def test_sciencedirect_requires_version_of_record_date(tmp_path):
+def test_sciencedirect_prefers_available_online_to_version_of_record():
+    parser = Parser_ELS_ANY_txt(
+        str(FIXTURES / 'elsevier_trac_current_article.html'))
+
+    assert parser.published == '3 February 2025'
+    assert parser.normalized_published == '2025-02-03'
+
+
+def test_sciencedirect_uses_version_of_record_as_last_fallback(tmp_path):
     source = (FIXTURES / 'elsevier_trac_current_article.html').read_text(
         encoding='utf-8')
-    without_version_of_record = tmp_path / 'available-online-only.html'
-    without_version_of_record.write_text(
-        source.replace('"Version of Record":"10 February 2025"',
-                       '"Unrelated date":"10 February 2025"'),
+    version_of_record_only = tmp_path / 'version-of-record-only.html'
+    version_of_record_only.write_text(
+        source.replace('"Available online":"3 February 2025",', '')
+        .replace('<meta name="citation_online_date" content="2025/02/03">', ''),
         encoding='utf-8',
     )
 
-    parser = Parser_ELS_ANY_txt(str(without_version_of_record))
+    parser = Parser_ELS_ANY_txt(str(version_of_record_only))
 
-    assert parser.received == '17 November 2024'
-    assert parser.accepted == '26 January 2025'
-    assert parser.published is None
-    assert not parser.success
-    assert 'published' in parser.invalid_fields
-    assert 'normalized_published' in parser.invalid_fields
+    assert parser.published == '10 February 2025'
+    assert parser.normalized_published == '2025-02-10'
 
 
 def test_invalid_doi_is_a_hard_failure_but_partial_fields_remain(tmp_path):

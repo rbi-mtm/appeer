@@ -103,7 +103,10 @@ class Parser_ELS_ANY_txt(Parser,
 
     @functools.cached_property
     def published(self):
-        return normalize_whitespace(self._dates.get('Version of Record'))
+        return normalize_whitespace(
+            self._dates.get('Available online')
+            or first_meta(self._input_data, 'citation_online_date')
+            or self._dates.get('Version of Record'))
 
     @functools.cached_property
     def normalized_received(self):
