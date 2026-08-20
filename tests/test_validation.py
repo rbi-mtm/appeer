@@ -8,7 +8,9 @@ from validation.scripts import common
 from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
+from validation.scripts.pre_adjudication import reference_summary
 from validation.scripts.sample import fetch_frame, select
+from validation.scripts.screen_eligibility import classify
 
 
 PROVENANCE = {
@@ -149,6 +151,35 @@ def test_jats_history_keeps_online_and_accepted_manuscript_events():
     noncomparable = [row['semantic_concept'] for row in rows
                      if row['status'] == 'semantic_noncomparable']
     assert noncomparable == ['collection', 'print']
+
+
+def test_title_screen_excludes_only_explicit_nonresearch_labels():
+    assert classify('Author Correction: Example')[:2] == (
+        'ineligible', 'correction')
+    assert classify('A systematic review of examples')[0] == (
+        'systematic_review')
+    assert classify('Error correction in quantum systems')[0] == 'uncertain'
+
+
+def test_reference_summary_does_not_turn_missingness_into_error():
+    missing = reference_summary([{
+        'target_field': 'accepted', 'status': 'source_field_missing',
+        'explicit_or_inferred': '', 'normalized_date': '',
+        'semantic_concept': '', 'source': 'crossref',
+        'source_lineage': 'publisher_deposit',
+    }], 'accepted')
+    assert missing['status'] == 'reference_unavailable'
+    assert missing['date'] == ''
+
+    agreement = reference_summary([{
+        'target_field': 'accepted', 'status': 'observed',
+        'explicit_or_inferred': 'explicit', 'normalized_date': '2025-01-02',
+        'semantic_concept': 'accepted', 'source': source,
+        'source_lineage': lineage,
+    } for source, lineage in (
+        ('pubmed', 'pubmed_deposit'), ('pmc_jats', 'pmc_deposit'))], 'accepted')
+    assert agreement['status'] == 'multi_source_agreement'
+    assert agreement['date'] == '2025-01-02'
 
 
 def test_confirmatory_selection_uses_only_population_frame(tmp_path, monkeypatch):
