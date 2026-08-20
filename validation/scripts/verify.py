@@ -97,16 +97,16 @@ def verify_observations(rows):
                 raise ValueError(f'Raw snapshot digest mismatch: {path}')
 
 
-def verify_final(sample, labels, appeer):
+def verify_final(sample, eligibility, labels, appeer):
     sample_dois = {row['doi'] for row in sample}
     eligibility_values = {
         'original_research', 'methods', 'systematic_review',
         'registered_report', 'eligible', 'ineligible', 'uncertain'}
-    for row in sample:
+    if {row['doi'] for row in eligibility} != sample_dois:
+        raise ValueError('Eligibility screen must contain every sampled DOI')
+    for row in eligibility:
         if row['eligibility'] not in eligibility_values:
             raise ValueError(f"Unclassified article eligibility: {row['doi']}")
-        if not row['article_type']:
-            raise ValueError(f"Missing article type: {row['doi']}")
     label_keys = {(row['doi'], row['target_field']) for row in labels}
     expected = {(doi, target) for doi in sample_dois for target in TARGETS}
     if label_keys != expected:
@@ -162,6 +162,7 @@ def main():
     if args.stage == 'final':
         verify_final(
             sample,
+            read_csv(VALIDATION_ROOT / 'adjudication' / 'eligibility.csv'),
             read_csv(VALIDATION_ROOT / 'adjudication' / 'labels.csv'),
             read_csv(VALIDATION_ROOT / 'runs' / 'appeer-results.csv'),
         )

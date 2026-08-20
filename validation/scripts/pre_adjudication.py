@@ -13,7 +13,8 @@ from validation.scripts.common import (
 COMPARISON_FIELDS = [
     'doi', 'publisher', 'journal', 'split', 'target_field',
     'reference_status', 'reference_date', 'reference_dates',
-    'evidence_sources', 'evidence_lineages', 'appeer_date',
+    'evidence_sources', 'evidence_lineages', 'appeer_transport',
+    'appeer_success', 'appeer_date',
     'comparison_status', 'difference_days',
 ]
 
@@ -70,14 +71,18 @@ def reference_summary(rows, target):
     }
 
 
-def compare(reference, appeer_value, appeer_ran):
+def compare(reference, appeer_value, appeer_ran, transport, parse_success):
     if not appeer_ran:
         return 'appeer_not_run', ''
-    actual = iso_date(appeer_value or '')
     expected = iso_date(reference['date']) if reference['date'] else None
     if expected is None:
         return ('reference_disagreement' if reference['status'] ==
                 'source_disagreement' else 'reference_unavailable'), ''
+    if transport != 'retrieved':
+        return 'appeer_transport_unavailable', ''
+    if parse_success != 'true':
+        return 'appeer_parse_failed_reference_exists', ''
+    actual = iso_date(appeer_value or '')
     if actual is None:
         return 'appeer_missing_reference_exists', ''
     delta = (dt.date.fromisoformat(actual) -
@@ -95,6 +100,9 @@ def generate(args):
 
     appeer_rows = read_csv(args.appeer) if args.appeer.exists() else []
     appeer = {row['doi']: row for row in appeer_rows}
+    retrieval_rows = (read_csv(args.retrievals)
+                      if args.retrievals.exists() else [])
+    retrievals = {row['doi']: row for row in retrieval_rows}
     appeer_ran = bool(appeer_rows)
     comparisons = []
     queue = []
@@ -102,6 +110,7 @@ def generate(args):
     evidence_counts = defaultdict(Counter)
     disagreement_counts = Counter()
     complete_evidence = Counter()
+    automated_comparisons = defaultdict(Counter)
 
     for article in sample:
         doi = article['doi']
@@ -119,10 +128,12 @@ def generate(args):
                 reasons.append(f'{target}:source_disagreement')
             if reference['status'] == 'reference_unavailable':
                 reasons.append(f'{target}:reference_unavailable')
+            appeer_row = appeer.get(doi, {})
+            retrieval = retrievals.get(doi, {})
             comparison, difference = compare(
-                reference, appeer.get(doi, {}).get(target, ''), appeer_ran)
-            if comparison in {'different', 'appeer_missing_reference_exists'}:
-                reasons.append(f'{target}:{comparison}')
+                reference, appeer_row.get(target, ''), appeer_ran,
+                retrieval.get('outcome', ''), appeer_row.get('success', ''))
+            automated_comparisons[(article['publisher'], target)][comparison] += 1
             comparisons.append({
                 'doi': doi, 'publisher': article['publisher'],
                 'journal': article['journal'], 'split': article['split'],
@@ -132,7 +143,9 @@ def generate(args):
                 'reference_dates': reference['dates'],
                 'evidence_sources': reference['sources'],
                 'evidence_lineages': reference['lineages'],
-                'appeer_date': appeer.get(doi, {}).get(target, ''),
+                'appeer_transport': retrieval.get('outcome', ''),
+                'appeer_success': appeer_row.get('success', ''),
+                'appeer_date': appeer_row.get(target, ''),
                 'comparison_status': comparison,
                 'difference_days': difference,
             })
@@ -153,7 +166,7 @@ def generate(args):
                 'received_reference_status': statuses['received'],
                 'accepted_reference_status': statuses['accepted'],
                 'published_reference_status': statuses['published'],
-                'blinded_to_appeer': 'yes' if not appeer_ran else 'no',
+                'blinded_to_appeer': 'yes',
             })
 
         for source in ('crossref', 'pubmed', 'europe_pmc', 'pmc_jats'):
@@ -207,6 +220,12 @@ def generate(args):
                 for target in ('received', 'accepted', 'published')
             } for publisher in ('NAT', 'RSC', 'ACS', 'APS', 'ELS')
         },
+        'automated_comparisons': {
+            publisher: {
+                target: dict(automated_comparisons[(publisher, target)])
+                for target in ('received', 'accepted', 'published')
+            } for publisher in ('NAT', 'RSC', 'ACS', 'APS', 'ELS')
+        },
     }
     args.summary.parent.mkdir(parents=True, exist_ok=True)
     temporary = args.summary.with_suffix('.json.tmp')
@@ -231,6 +250,8 @@ def parser():
                         default=VALIDATION_ROOT / 'adjudication' / 'eligibility.csv')
     result.add_argument('--appeer', type=Path,
                         default=VALIDATION_ROOT / 'runs' / 'appeer-results.csv')
+    result.add_argument('--retrievals', type=Path,
+                        default=VALIDATION_ROOT / 'runs' / 'retrievals.csv')
     result.add_argument('--comparisons', type=Path,
                         default=VALIDATION_ROOT / 'reports' / 'comparisons.csv')
     result.add_argument('--queue', type=Path,

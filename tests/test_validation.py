@@ -9,8 +9,8 @@ from validation.scripts import common
 from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
-from validation.scripts.pre_adjudication import reference_summary
-from validation.scripts.run_appeer import parse_file
+from validation.scripts.pre_adjudication import compare, reference_summary
+from validation.scripts.run_appeer import parse_file, retrieve
 from validation.scripts.sample import fetch_frame, select
 from validation.scripts.screen_eligibility import classify
 
@@ -183,6 +183,11 @@ def test_reference_summary_does_not_turn_missingness_into_error():
     assert agreement['status'] == 'multi_source_agreement'
     assert agreement['date'] == '2025-01-02'
 
+    assert compare(agreement, '', True, 'failed', 'false') == (
+        'appeer_transport_unavailable', '')
+    assert compare(agreement, '', True, 'retrieved', 'false') == (
+        'appeer_parse_failed_reference_exists', '')
+
 
 def test_validation_runner_records_frozen_parser_output():
     result = parse_file(
@@ -194,6 +199,34 @@ def test_validation_runner_records_frozen_parser_output():
     assert result['published'] == '2025-11-10'
     assert result['git_revision'] == 'frozen-revision'
     assert len(result['input_sha256']) == 64
+
+
+def test_elsevier_runner_follows_safe_linking_hub_pii():
+    class Response:
+        def __init__(self, status, location=''):
+            self.status_code = status
+            self.headers = {'Location': location} if location else {}
+
+    class Session:
+        def __init__(self):
+            self.urls = []
+            self.responses = [
+                Response(302, 'https://linkinghub.elsevier.com/retrieve/pii/S123'),
+                Response(200),
+                Response(200),
+            ]
+
+        def get(self, url, **kwargs):
+            self.urls.append(url)
+            return self.responses.pop(0)
+
+    session = Session()
+    response, final_url = retrieve(
+        session, '10.1016/j.example.2025.1', 'ELS', 30, 'test-agent', 0)
+
+    assert response.status_code == 200
+    assert final_url == 'https://www.sciencedirect.com/science/article/pii/S123'
+    assert session.urls[-1] == final_url
 
 
 def test_confirmatory_selection_uses_only_population_frame(tmp_path, monkeypatch):

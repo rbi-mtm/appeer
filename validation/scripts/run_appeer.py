@@ -7,6 +7,7 @@ import datetime as dt
 import hashlib
 import json
 from pathlib import Path
+import re
 import subprocess
 import time
 from urllib.parse import urljoin, urlsplit
@@ -103,6 +104,16 @@ def retrieve(session, doi, publisher, timeout, user_agent, minimum_interval):
                 return response, current
             current = urljoin(current, location)
             continue
+        if (publisher == 'ELS' and response.status_code == 200
+                and urlsplit(current).hostname == 'linkinghub.elsevier.com'):
+            match = re.fullmatch(r'/retrieve/pii/([A-Z0-9]+)',
+                                 urlsplit(current).path, re.IGNORECASE)
+            if not match:
+                raise ValueError('Elsevier linking hub did not expose a safe PII')
+            current = (
+                'https://www.sciencedirect.com/science/article/pii/'
+                f'{match.group(1)}')
+            continue
         return response, current
     raise requests.TooManyRedirects('redirect or retry limit exhausted')
 
@@ -155,10 +166,12 @@ def process_publisher(publisher, articles, args, revision):
     session = requests.Session()
     result_checkpoint = args.checkpoints / f'{publisher}-results.csv'
     retrieval_checkpoint = args.checkpoints / f'{publisher}-retrievals.csv'
+    refresh = publisher in args.refresh_publisher
     existing_results = (read_csv(result_checkpoint)
-                        if result_checkpoint.exists() else [])
+                        if result_checkpoint.exists() and not refresh else [])
     existing_retrievals = (read_csv(retrieval_checkpoint)
-                           if retrieval_checkpoint.exists() else [])
+                           if retrieval_checkpoint.exists() and not refresh
+                           else [])
     completed = {row['doi'] for row in existing_results}
     outputs = list(zip(existing_results, existing_retrievals))
     processed = 0
@@ -264,6 +277,8 @@ def parser():
     result.add_argument('--user-agent', default=(
         'appeer-validation/0.1 (scientific metadata validation; '
         'mailto:juraj.ovcar@gmail.com)'))
+    result.add_argument('--refresh-publisher', action='append', default=[],
+                        choices=sorted(EXPECTED_HOSTS))
     return result
 
 
