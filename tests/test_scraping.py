@@ -47,8 +47,11 @@ class FakeSession:
 
 
 def test_transparent_user_agent_redirect_and_timeout_are_configurable():
-    session = FakeSession([FakeResponse(
-        url='https://www.nature.com/articles/redirected')])
+    session = FakeSession([
+        FakeResponse(302, headers={
+            'Location': 'https://www.nature.com/articles/redirected'}),
+        FakeResponse(url='https://www.nature.com/articles/redirected'),
+    ])
     request = Request('https://doi.org/10.1038/example', session=session)
 
     request.send(timeout=4)
@@ -56,7 +59,7 @@ def test_transparent_user_agent_redirect_and_timeout_are_configurable():
     assert request.success
     assert request.response.url.endswith('/redirected')
     assert session.calls[0][2]['timeout'] == 4
-    assert session.calls[0][2]['allow_redirects'] is True
+    assert session.calls[0][2]['allow_redirects'] is False
     assert session.calls[0][2]['headers']['User-Agent'] == DEFAULT_USER_AGENT
 
 
@@ -103,6 +106,29 @@ def test_http_success_block_page_is_not_an_article():
     assert not request.success
     assert request.status == 200
     assert request.error == 'Response is not a supported article page'
+
+
+def test_redirect_to_unregistered_hostname_is_rejected_before_following():
+    session = FakeSession([FakeResponse(302, headers={
+        'Location': 'https://evil.example/article'})])
+    request = Request('https://www.nature.com/articles/example', session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert len(session.calls) == 1
+
+
+def test_request_exception_is_reported_without_escaping():
+    request = Request(
+        'https://www.nature.com/articles/example',
+        session=FakeSession([requests.exceptions.TooManyRedirects()]))
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'TooManyRedirects'
 
 
 @pytest.mark.parametrize(('url', 'expected_journal'), [

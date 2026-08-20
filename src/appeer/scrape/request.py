@@ -3,7 +3,9 @@
 import datetime
 from email.utils import parsedate_to_datetime
 import time
+from urllib.parse import urljoin, urlsplit
 
+from bs4 import BeautifulSoup
 import click
 import requests
 
@@ -17,6 +19,8 @@ DEFAULT_USER_AGENT = (
     f'appeer/{__version__} (scientific metadata client; '
     'contact: juraj.ovcar@gmail.com)'
 )
+
+SUPPORTED_HOSTS = {'doi.org', 'pubs.rsc.org', 'www.nature.com'}
 
 
 class Request:
@@ -55,13 +59,8 @@ class Request:
             self._rprint(_log.underlined_message(
                 f'HTTPS Request {attempt + 1}/{max_tries}'))
             try:
-                method = self._session.head if head else self._session.get
-                self.response = method(
-                    self.url,
-                    headers=headers,
-                    timeout=timeout,
-                    allow_redirects=True,
-                )
+                self.response = self._request_with_redirects(
+                    head=head, headers=headers, timeout=timeout)
                 self.status = self.response.status_code
 
                 if self.status == 429:
@@ -80,10 +79,12 @@ class Request:
                     self.success = True
                     self.error = None
 
-            except (requests.exceptions.ConnectionError,
-                    requests.exceptions.Timeout) as exc:
+            except requests.exceptions.RequestException as exc:
                 self.status = None
                 self.error = type(exc).__name__
+            except ValueError as exc:
+                self.status = None
+                self.error = str(exc)
 
             self._rprint(reports.requests_report(self))
             if self.success:
@@ -94,19 +95,72 @@ class Request:
         self.success = False
         self._rprint('Scraping failed.\n')
 
+    def _request_with_redirects(self, head, headers, timeout, max_redirects=5):
+        """Follow only bounded HTTPS redirects between registered hosts."""
+
+        method = self._session.head if head else self._session.get
+        current_url = self.url
+        for _ in range(max_redirects + 1):
+            if not self._is_allowed_url(current_url):
+                raise ValueError('Unsafe or unsupported request URL')
+            response = method(
+                current_url,
+                headers=headers,
+                timeout=timeout,
+                allow_redirects=False,
+            )
+            if not 300 <= response.status_code < 400:
+                return response
+            location = response.headers.get('Location')
+            if not location:
+                return response
+            current_url = urljoin(current_url, location)
+        raise requests.exceptions.TooManyRedirects(
+            f'More than {max_redirects} redirects')
+
+    @staticmethod
+    def _is_allowed_url(url):
+        try:
+            parsed = urlsplit(url)
+            return (
+                parsed.scheme == 'https'
+                and parsed.hostname in SUPPORTED_HOSTS
+                and parsed.port in (None, 443)
+                and parsed.username is None
+                and parsed.password is None
+            )
+        except ValueError:
+            return False
+
     @staticmethod
     def _is_article_response(response):
         content_type = response.headers.get('Content-Type', '').casefold()
-        text = response.text or ''
         if content_type and 'html' not in content_type:
             return False
-        has_doi = 'citation_doi' in text.casefold()
-        has_supported_publisher = (
-            'royal society of chemistry' in text.casefold()
-            or 'nature publishing group' in text.casefold()
-            or 'springer nature' in text.casefold()
-        )
-        return has_doi and has_supported_publisher
+        if not Request._is_allowed_url(response.url):
+            return False
+
+        soup = BeautifulSoup(response.text or '', 'html.parser')
+        metadata = {}
+        for tag in soup.find_all('meta'):
+            key = (tag.get('name') or tag.get('property') or '').casefold()
+            if key in ('citation_doi', 'dc.identifier',
+                       'citation_publisher', 'dc.publisher'):
+                metadata.setdefault(key, tag.get('content', '').strip())
+        doi = metadata.get('citation_doi') or metadata.get('dc.identifier', '')
+        publisher = (metadata.get('citation_publisher')
+                     or metadata.get('dc.publisher', ''))
+        hostname = urlsplit(response.url).hostname
+        if hostname == 'pubs.rsc.org':
+            return (doi.casefold().startswith('10.1039/')
+                    and publisher in ('Royal Society of Chemistry',
+                                      'The Royal Society of Chemistry'))
+        if hostname == 'www.nature.com':
+            return (doi.casefold().startswith('10.1038/')
+                    and publisher in ('Nature Publishing Group',
+                                      'Nature Research', 'Nature Portfolio',
+                                      'Springer Nature'))
+        return False
 
     @staticmethod
     def _retry_after_seconds(response, fallback):

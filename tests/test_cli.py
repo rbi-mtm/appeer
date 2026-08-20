@@ -27,6 +27,25 @@ def test_help_smoke_and_preinitialization_error_has_guidance():
     assert 'Traceback' not in result.output
 
 
+def test_partial_initialization_has_guidance_without_traceback(tmp_path):
+    from appeer.cli import appeer_cli
+
+    config = Config()
+    config_path = Path(config._config_path)  # pylint: disable=protected-access
+    config_path.parent.mkdir(parents=True)
+    config_path.write_text(
+        '[GlobalSettings]\n'
+        f'data_directory = {tmp_path / "missing-data"}\n',
+        encoding='utf-8',
+    )
+
+    result = CliRunner().invoke(appeer_cli, ['pub', 'search'])
+
+    assert result.exit_code == 1
+    assert 'run `appeer init` first' in result.output
+    assert 'Traceback' not in result.output
+
+
 def test_cli_writes_documented_json_with_author_names(tmp_path):
     config = Config()
     config_path = Path(config._config_path)  # pylint: disable=protected-access
@@ -61,3 +80,10 @@ def test_cli_writes_documented_json_with_author_names(tmp_path):
     payload = json.loads(output.read_text(encoding='utf-8'))
     assert payload[0]['author_names'] == [
         'Aiping Deng', 'Fangli Xiong', 'Qiuping Ren']
+
+    invalid = CliRunner().invoke(appeer_cli, [
+        'pub', 'search', '--min_received', '2025',
+        '--max_received', '2024',
+    ])
+    assert invalid.exit_code == 1
+    assert 'Inverted received date range' in invalid.output

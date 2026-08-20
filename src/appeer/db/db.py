@@ -78,6 +78,11 @@ class DB(abc.ABC):
 
         if self._db_exists:
             self._connect()
+        elif self._read_only:
+            if db_path is None:
+                raise RuntimeError(
+                    'appeer is not initialized; run `appeer init` first.')
+            raise FileNotFoundError(self._db_path)
 
     @property
     def _db_exists(self):

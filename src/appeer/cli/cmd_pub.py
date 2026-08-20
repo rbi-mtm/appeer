@@ -167,7 +167,9 @@ def pub_search_cli(**kwargs):
                 click.echo(researcher.search_summary)
 
     except ValueError as exc:
-        click.echo(f'Search failed. Most likely, an invalid filter was passed. Possible cause: {exc.__cause__}')
+        cause = exc.__cause__ or exc
+        raise click.ClickException(
+            f'Search failed because an invalid filter was passed: {cause}') from exc
     except RuntimeError as exc:
         raise click.ClickException(str(exc)) from exc
 
