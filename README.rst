@@ -1,131 +1,81 @@
 appeer
 ======
 
-``appeer`` is experimental software for collecting publication metadata and
-studying the length of peer review. It supports the current Royal Society of
-Chemistry (RSC) and Nature Portfolio article layouts to the same standard.
-Historical publisher layouts are intentionally unsupported.
+``appeer`` is a command-line tool for collecting publication metadata and
+exploring how long peer review takes. It currently supports articles from the
+Royal Society of Chemistry and Nature Portfolio.
 
-Scientific behavior
--------------------
+The project is experimental and supports current article pages only.
 
-A parse is successful only when every canonical field is present and valid:
-DOI, publisher, journal, title, publication type, authors, per-author
-affiliations, received/accepted/published dates, and their normalized values.
-DOIs and calendar dates are validated strictly. Author counts must agree with
-the author and affiliation structures, and every author may have one or more
-institutions.
+Installation
+------------
 
-Chronology anomalies remain inspectable warnings instead of universal parsing
-failures. Suspicious or negative intervals are excluded from aggregate review
-statistics by default. Failed parses retain independently extracted fields and
-diagnostics in ``jobs.db`` but cannot be committed to ``pub.db``.
-
-Each parse records the SHA-256 of its exact input bytes, parser identity,
-package version, Git revision when available, parse timestamp, invalid fields,
-and plausibility warnings. Successful publication rows carry the provenance
-needed to trace them back to the parser and exact input.
-
-Installation and verification
------------------------------
-
-Python 3.13 or newer is required.
+``appeer`` requires Python 3.13 or newer. From the project directory, run:
 
 .. code:: shell
 
-   python -m pip install -e '.[test]'
-   python -m compileall -q src
-   pytest -q
-
-The default suite is fully offline. Live publisher checks are opt-in and must
-be explicitly requested:
-
-.. code:: shell
-
-   pytest -q --runslow
-
-Build a wheel without adding another build frontend:
-
-.. code:: shell
-
-   python -m pip wheel --no-deps --wheel-dir dist .
-
-Initialization
---------------
-
-.. code:: shell
-
+   python -m pip install .
    appeer init
 
-Commands that need configuration or databases report this instruction when
-initialization has not yet been completed. Tests isolate configuration and data
-through temporary XDG directories and never use a developer's real state.
+Quick start
+-----------
 
-Scraping and parsing
---------------------
+Create a text file containing one article URL or DOI per line:
 
-Article HTML can be retrieved from URLs or canonical DOIs stored one per line,
-or from a Publish or Perish JSON export:
+.. code:: text
+
+   10.1039/D3OB00424D
+   https://www.nature.com/articles/s41598-025-92476-w
+
+Then collect, process, and save the publication data:
 
 .. code:: shell
 
    appeer scrape publications.txt
-   appeer scrape publications.json
+   appeer parse
+   appeer commit
 
-Only exact HTTPS hostnames registered for RSC, Nature, and DOI resolution are
-accepted. Requests use a transparent configurable user agent, bounded retries
-and timeouts, and ``Retry-After`` delays. HTTP success alone is not treated as a
-valid article response.
+Search publications
+-------------------
 
-Use ``appeer sjob --help``, ``appeer pjob --help``, and ``appeer cjob --help``
-for the resumable scrape, parse, and commit workflows.
-
-Publication search
-------------------
-
-Filters accept ``YYYY``, ``YYYY-MM``, or ``YYYY-MM-DD``. Minimum values mean
-the beginning of a period and maximum values mean its inclusive end.
+Print a summary of all saved publications:
 
 .. code:: shell
 
-   appeer pub search --min_received 2024 --max_received 2025-06
-   appeer pub search --get_title --get_author_names --get_affiliations \
-       --output publications.json
+   appeer pub search
 
-JSON output is a list of publication objects. Optional fields are ``null``
-unless their corresponding ``--get_*`` flag is passed. Warnings are always
-included so excluded chronology intervals remain auditable.
+Filter by date and export the results as JSON:
 
-Offline fixtures
-----------------
+.. code:: shell
 
-Current-layout fixtures live in ``tests/fixtures``. ``manifest.json`` records
-the official source URL, retrieval timestamp, exact fixture SHA-256, parser,
-and hand-verified metadata. Each publisher matrix covers multiple authors,
-shared affiliations, and multiple affiliations per author; unsupported and
-block pages are covered separately.
+   appeer pub search --min_received 2024 --max_received 2025 \
+       --get_title --get_author_names --output publications.json
 
-To refresh a fixture:
+Dates may be written as ``YYYY``, ``YYYY-MM``, or ``YYYY-MM-DD``. Searches can
+also be filtered by publisher, journal, publication type, acceptance date, and
+publication date.
 
-#. Retrieve the official publisher page with a transparent user agent.
-#. Independently verify every expected field against the official page.
-#. Reduce the saved page to metadata-bearing current-layout markup without
-   changing its values.
-#. Update its UTC retrieval timestamp and SHA-256 in ``manifest.json``.
-#. Run ``pytest -q`` and review parser changes independently from fixture
-   expectations.
+Input files
+-----------
 
-Never change parsing semantics merely to make a fixture expectation pass.
+``appeer scrape`` accepts:
 
-Database recreation
--------------------
+* a text file containing one URL or DOI per line;
+* a Publish or Perish JSON export containing article URLs.
 
-The SQLite schemas are disposable and explicitly typed, with primary keys,
-case-insensitive DOI uniqueness, status constraints, JSON collection columns,
-provenance, and diagnostics. There are no migrations and no compatibility
-guarantees for databases created by older versions.
+Only complete, valid publication records are added to search results. Unusual
+or incomplete records remain available for review without affecting summary
+statistics.
 
-Before using a new schema, back up any data that must be retained, remove only
-the exact ``jobs.db`` and ``pub.db`` files in the configured appeer data
-directory, then run ``appeer init`` to recreate them. Never delete a broad or
-unverified path.
+Help
+----
+
+Use ``--help`` to see the available commands and options:
+
+.. code:: shell
+
+   appeer --help
+   appeer scrape --help
+   appeer pub search --help
+
+If a command says that ``appeer`` has not been initialized, run ``appeer init``.
