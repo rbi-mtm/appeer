@@ -137,22 +137,17 @@ class Action(abc.ABC):
         Action._define_db_properties(action_fields=action_fields)
 
         self._queue = None
+        self._db = JobsDB()
 
-    @property
-    def _db(self):
-        """
-        Connects to the database
+    def close(self):
+        self._db.close()
 
-        Returns
-        -------
-        db : appeer.db.jobs_db.JobsDB
-            appeer jobs database interface
+    def __enter__(self):
+        return self
 
-        """
-
-        db = JobsDB()
-
-        return db
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+        return False
 
     @property
     def _action_exists(self):
@@ -163,6 +158,8 @@ class Action(abc.ABC):
 
         exists = False
 
+        if not self._db._db_exists: #pylint:disable=protected-access
+            raise RuntimeError('appeer is not initialized; run `appeer init` first.')
         if not self.label:
             exists = False
 

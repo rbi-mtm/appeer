@@ -8,7 +8,7 @@ class PubDB(DB, tables=['pub']):
 
     """
 
-    def __init__(self, read_only=False):
+    def __init__(self, read_only=False, db_path=None):
         """
         If the pub database exists, establishes a connection and a cursor.
 
@@ -19,4 +19,4 @@ class PubDB(DB, tables=['pub']):
 
         """
 
-        super().__init__(db_type='pub', read_only=read_only)
+        super().__init__(db_type='pub', read_only=read_only, db_path=db_path)

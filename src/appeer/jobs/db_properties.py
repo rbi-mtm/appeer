@@ -18,8 +18,6 @@ class JobProperty:
         else:
             _value = None
 
-        instance._db._con.close()
-
         return _value
 
     def __set__(self, instance, val):
@@ -52,8 +50,6 @@ class JobProperty:
                                 column_name=self.name,
                                 new_value=val)
 
-                instance._db._con.close()
-
             else:
                 raise PermissionError(f'Cannot modify "{self.name}"; the job with the label "{instance.label}" does not exist.')
 
@@ -74,8 +70,6 @@ class ActionProperty:
 
         else:
             _value = None
-
-        instance._db._con.close()
 
         return _value
 
@@ -111,8 +105,6 @@ class ActionProperty:
                                 action_index=instance.action_index,
                                 column_name=self.name,
                                 new_value=val)
-
-                instance._db._con.close()
 
             else:
                 raise PermissionError(f'Cannot modify "{self.name}"; the job with the label "{instance.label}" and index={instance.index} does not exist.')

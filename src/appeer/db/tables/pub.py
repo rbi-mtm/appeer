@@ -1,5 +1,6 @@
 """Handles the ``pub`` table in ``pub.db``"""
 
+import json
 import sqlite3
 from collections import namedtuple
 
@@ -69,7 +70,7 @@ class Pub(Table,
 
         super().__init__(connection=connection)
 
-    def initialize_table(self):
+    def initialize_table(self, commit=True):
         """
         Initializes an empty table
 
@@ -85,11 +86,7 @@ class Pub(Table,
 
         self._sanity_check()
 
-        columns_commas = ', '.join(self._columns)
-        initialize_query = f'CREATE TABLE {self._name}({columns_commas}, PRIMARY KEY(doi COLLATE NOCASE))' #pylint:disable=line-too-long
-
-        self._cur.execute(initialize_query)
-        self._con.commit()
+        super().initialize_table(commit=commit)
 
     def add_entry(self, overwrite=False, **kwargs):
         """
@@ -160,33 +157,50 @@ class Pub(Table,
         duplicate = False
         inserted = False
 
-        colons_values = ', '.join([':' + meta for meta in default_metadata()])
+        columns = default_metadata()
+        data = {column: kwargs[column] for column in columns}
+        for column in ('author_names', 'affiliations'):
+            value = data[column]
+            if isinstance(value, str):
+                value = json.loads(value)
+            if column == 'author_names' and value and isinstance(value[0], list):
+                value = [entry[0] for entry in value]
+            data[column] = json.dumps(value, ensure_ascii=False)
 
-        add_query = f'INSERT INTO {self._name} VALUES({colons_values})'
+        columns_sql = ', '.join(columns)
+        colons_values = ', '.join(':' + column for column in columns)
+        add_query = (f'INSERT INTO {self._name} ({columns_sql}) '
+                     f'VALUES({colons_values})')
 
         try:
 
-            self._cur.execute(add_query, kwargs)
+            self._cur.execute(add_query, data)
             self._con.commit()
 
             inserted = True
 
         except sqlite3.IntegrityError:
 
+            self._con.rollback()
+
             duplicate = True
 
             if overwrite:
 
-                replace_query =\
-                        f'REPLACE INTO {self._name} VALUES({colons_values})'
+                replace_query = (f'REPLACE INTO {self._name} ({columns_sql}) '
+                                 f'VALUES({colons_values})')
 
-                self._cur.execute(replace_query, kwargs)
+                self._cur.execute(replace_query, data)
                 self._con.commit()
 
                 inserted = True
 
             else:
                 pass
+
+        except BaseException:
+            self._con.rollback()
+            raise
 
         return duplicate, inserted
 
@@ -290,6 +304,10 @@ class Pub(Table,
 
         if pub:
             pub = pub[0]
+            pub = pub._replace(
+                author_names=json.loads(pub.author_names),
+                affiliations=json.loads(pub.affiliations),
+            )
 
         return pub
 
@@ -631,9 +649,13 @@ class Pub(Table,
 
         self._cur.execute(query, args_query)
 
-        filtered_pubs = list(
-                map(FilteredPub._make, self._cur.fetchall())
-                )
+        filtered_pubs = list(map(FilteredPub._make, self._cur.fetchall()))
+        filtered_pubs = [publication._replace(
+            author_names=(json.loads(publication.author_names)
+                          if publication.author_names else None),
+            affiliations=(json.loads(publication.affiliations)
+                          if publication.affiliations else None),
+        ) for publication in filtered_pubs]
 
         return filtered_pubs
 

@@ -146,6 +146,45 @@ def get_registered_tables():
 
     return registered_tables
 
+
+def get_table_schemas():
+    """Return explicit SQLite definitions for disposable databases."""
+
+    schemas = {}
+    integer_columns = {
+        'action_index', 'scrape_action_index', 'parse_action_index',
+        'job_step', 'job_successes', 'job_fails', 'job_passes',
+        'job_duplicates', 'no_of_publications', 'no_of_authors',
+    }
+    flag_columns = {
+        'success', 'parsed', 'committed', 'passed', 'duplicate',
+        'job_parsed', 'job_committed',
+    }
+    status_columns = {'status', 'job_status'}
+
+    for table, columns in get_registered_tables().items():
+        definitions = []
+        for column in columns:
+            sql_type = 'INTEGER' if column in integer_columns else 'TEXT'
+            definition = f'{column} {sql_type}'
+            if column in flag_columns:
+                definition += f" CHECK ({column} IN ('T', 'F'))"
+            if column in status_columns:
+                definition += f" CHECK ({column} IN ('I', 'W', 'R', 'E', 'X'))"
+            if column == 'no_of_authors':
+                definition += ' CHECK (no_of_authors > 0)'
+            definitions.append(definition)
+
+        if table.endswith('_jobs'):
+            definitions[0] += ' PRIMARY KEY'
+        elif table in ('scrapes', 'parses', 'commits'):
+            definitions.append('PRIMARY KEY (label, action_index)')
+        elif table == 'pub':
+            definitions[0] += ' COLLATE NOCASE PRIMARY KEY'
+        schemas[table] = definitions
+
+    return schemas
+
 def sanity_check(name, columns):
     """
     Checks if ``name`` and ``columns`` are in the registered tables

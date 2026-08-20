@@ -238,5 +238,4 @@ class ScrapeJobs(JobTable,
 
             case _:
 
-                self._con.close()
                 raise ValueError(f'Cannot update the scrape database. Invalid column name "{column_name}" given.')

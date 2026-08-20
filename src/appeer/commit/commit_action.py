@@ -195,15 +195,13 @@ class CommitAction(Action, action_type='commit'): #pylint:disable=too-many-insta
 
         self._aprint(reports.commit_action_start(self))
 
-        pub = PubDB().pub
-
         metadata = {meta: getattr(self, meta)
                 for meta in default_metadata()
                 }
 
-        duplicate, inserted = pub.add_entry(overwrite=overwrite, **metadata)
-
-        pub._con.close() #pylint:disable=protected-access
+        with PubDB() as pub_db:
+            duplicate, inserted = pub_db.pub.add_entry(
+                    overwrite=overwrite, **metadata)
 
         if duplicate:
             self.duplicate = 'T'

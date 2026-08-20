@@ -243,11 +243,7 @@ def aff_list2str(aff_list):
 
     """
 
-    aff_str = '?_?'.join([
-        '!_!'.join(aff) for aff in aff_list
-        ])
-
-    return aff_str
+    return json.dumps(aff_list, ensure_ascii=False)
 
 def aff_str2list(aff_str):
     """
@@ -265,12 +261,10 @@ def aff_str2list(aff_str):
 
     """
 
-    aff_list = [
-            aff.split('!_!')
-            for aff in aff_str.split('?_?')
-            ]
-
-    return aff_list
+    value = json.loads(aff_str)
+    if not isinstance(value, list):
+        raise ValueError('Serialized author or affiliation data must be a list.')
+    return value
 
 def publication_types_unpack(publication_types_pack):
     """

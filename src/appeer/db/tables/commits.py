@@ -174,7 +174,4 @@ class Commits(ActionTable,
 
             case _:
 
-                self._con.close()
                 raise ValueError(f'Cannot update the "commits" table. Invalid column name "{column_name}" given.')
-
-        self._con.close()

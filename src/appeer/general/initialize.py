@@ -39,10 +39,16 @@ def create_databases():
     """
 
     jobs_db = JobsDB()
-    jobs_db.create_database()
+    try:
+        jobs_db.create_database()
+    finally:
+        jobs_db.close()
 
     pub_db = PubDB()
-    pub_db.create_database()
+    try:
+        pub_db.create_database()
+    finally:
+        pub_db.close()
 
 def initialize_appeer():
     """

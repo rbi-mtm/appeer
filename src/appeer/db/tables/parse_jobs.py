@@ -243,5 +243,4 @@ class ParseJobs(JobTable,
 
             case _:
 
-                self._con.close()
                 raise ValueError(f'Cannot update the parse database. Invalid column name "{column_name}" given.')

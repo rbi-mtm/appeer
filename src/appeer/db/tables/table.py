@@ -5,7 +5,11 @@ import inspect
 
 from collections import namedtuple
 
-from appeer.db.tables.registered_tables import sanity_check, check_column
+from appeer.db.tables.registered_tables import (
+    check_column,
+    get_table_schemas,
+    sanity_check,
+)
 
 class Table(abc.ABC):
     """
@@ -78,21 +82,15 @@ class Table(abc.ABC):
 
         sanity_check(name=self._name, columns=self._columns)
 
-    def _set_row_factory(self):
+    def _rows(self, rows):
         """
-        Sets the connection row factory for convenient table querying
+        Convert fetched rows without changing connection-global row state.
 
         """
 
-        self._sanity_check()
+        return [self._row_tuple(*row) for row in rows]
 
-        def row_factory(cursor, row): #pylint:disable=unused-argument
-            return self._row_tuple(*row)
-
-        self._con.row_factory = row_factory
-        self._cur = self._con.cursor()
-
-    def initialize_table(self):
+    def initialize_table(self, commit=True):
         """
         Initializes an empty table
 
@@ -100,11 +98,12 @@ class Table(abc.ABC):
 
         self._sanity_check()
 
-        columns_commas = ', '.join(self._columns)
+        columns_commas = ', '.join(get_table_schemas()[self._name])
         initialize_query = f'CREATE TABLE {self._name}({columns_commas})'
 
         self._cur.execute(initialize_query)
-        self._con.commit()
+        if commit:
+            self._con.commit()
 
     @property
     def entries(self):
@@ -113,12 +112,10 @@ class Table(abc.ABC):
 
         """
 
-        self._set_row_factory()
-
         entries_query = f'SELECT * FROM {self._name}'
         self._cur.execute(entries_query)
 
-        all_entries = self._cur.fetchall()
+        all_entries = self._rows(self._cur.fetchall())
 
         return all_entries
 
@@ -176,8 +173,6 @@ class Table(abc.ABC):
 
         self._sanity_check()
 
-        self._set_row_factory()
-
         if and_or is None:
             and_or = ['AND'] * (len(kwargs) - 1)
 
@@ -231,6 +226,6 @@ class Table(abc.ABC):
             query += ')'
 
         self._cur.execute(query, params)
-        search_result = self._cur.fetchall()
+        search_result = self._rows(self._cur.fetchall())
 
         return search_result

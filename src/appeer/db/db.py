@@ -1,199 +1,151 @@
-"""Base abstract class for handling appeer databases"""
+"""Connection-owning base class for appeer SQLite databases."""
 
-import os
-import sys
 import abc
+from contextlib import contextmanager
 import importlib
+import os
 import sqlite3
-
-from functools import partial
 
 import click
 
 from appeer.general import log
-from appeer.general import utils
 from appeer.general.datadir import Datadir
-
 from appeer.db.tables.registered_tables import get_registered_tables
 
-class DB(abc.ABC):
-    """
-    Base abstract class for handling ``appeer`` databases,
-        which are found at ``Datadir().base/db``
 
-    """
+class DB(abc.ABC):
+    """Own exactly one SQLite connection and stable table interfaces."""
 
     def __init_subclass__(cls, tables):
-        """
-        Attributes the given tables to the database class
-
-        Parameters
-        ----------
-        tables : list
-            List of tables belonging to the database
-
-        """
-
         if not isinstance(tables, list):
             raise TypeError('Tables must be given as a list.')
+        allowed = get_registered_tables()
+        if any(not isinstance(table, str) or table not in allowed
+               for table in tables):
+            raise PermissionError(f'Unknown table in {tables}.')
 
-        registered_tables = get_registered_tables().keys()
-
-        for table in tables:
-
-            if not isinstance(table, str):
-                raise TypeError('Table name must be a string.')
-
-            if table not in registered_tables:
-                raise PermissionError(f'Unknown table {table} given. Allowed table names: {list(registered_tables)}')
-
+        cls.tables = tuple(tables)
         cls._table_classes = {}
-        cls.tables = tables
-
         for table in tables:
+            module = importlib.import_module(f'appeer.db.tables.{table}')
+            class_name = ''.join(word.capitalize() for word in table.split('_'))
+            cls._table_classes[table] = getattr(module, class_name)
 
-            _table_module = importlib.import_module(
-                    f'appeer.db.tables.{table}')
-            _table_class_name = "".join([word.capitalize()
-                for word in table.split('_')])
-
-            _table_class = getattr(_table_module, _table_class_name)
-
-            cls._table_classes[f'{table}'] = _table_class
-
-    def __init__(self, db_type, read_only=False):
-        """
-        If the database exists, establishes a connection and a cursor.
-
-        Parameters
-        ----------
-        db_type : str
-            Must be 'jobs' or 'pub'
-        read_only : bool
-            If True, open a database in read-only mode
-
-        """
-
-        datadir = Datadir()
-
-        self._base = datadir.base
-
-        if db_type not in ['jobs', 'pub']:
-            raise ValueError('Failed to initialize the DB class. db_type must be "jobs" or "pub".')
+    def __init__(self, db_type, read_only=False, db_path=None):
+        if db_type not in ('jobs', 'pub'):
+            raise ValueError('db_type must be "jobs" or "pub".')
 
         self._db_type = db_type
+        self._read_only = read_only
+        self._con = None
+        self._cur = None
+        self._closed = True
+        self._dashes = log.get_log_dashes()
 
-        if self._db_type == 'jobs':
-            self._db_path = os.path.join(datadir.db, 'jobs.db')
-
-        elif self._db_type == 'pub':
-            self._db_path = os.path.join(datadir.db, 'pub.db')
+        if db_path is None:
+            try:
+                datadir = Datadir()
+            except (KeyError, TypeError) as exc:
+                raise RuntimeError(
+                    'appeer is not initialized; run `appeer init` first.') from exc
+            self._base = datadir.base
+            self._db_path = os.path.join(datadir.db, f'{db_type}.db')
+        else:
+            self._db_path = os.fspath(db_path)
+            self._base = os.path.dirname(os.path.dirname(self._db_path))
 
         if self._db_exists:
-
-            if read_only:
-                self._db_path = 'file:' + self._db_path + '?mode=ro'
-
-            self._con = sqlite3.connect(self._db_path, uri=read_only)
-            self._cur = self._con.cursor()
-
-            def _get_table_instance(self, connection, tab_class): #pylint:disable=unused-argument
-                return tab_class(connection)
-
-            for table_name, table_class in self._table_classes.items():
-                setattr(self.__class__,
-                        table_name,
-                        property(partial(_get_table_instance,
-                                         connection=self._con,
-                                         tab_class=table_class))
-                        )
-
-        self._dashes = log.get_log_dashes()
+            self._connect()
 
     @property
     def _db_exists(self):
-        """
-        Checks for the existence of a database at self._db_path
+        return os.path.isfile(self._db_path)
 
-        Returns
-        -------
-        _db_exists : bool
-            True if a file exists at self._db_path, False otherwise
+    @property
+    def closed(self):
+        return self._closed
 
-        """
+    @property
+    def connection(self):
+        if self._con is None or self._closed:
+            raise sqlite3.ProgrammingError('The database connection is closed.')
+        return self._con
 
-        exists = utils.file_exists(self._db_path)
+    def _connect(self):
+        if self._con is not None and not self._closed:
+            return
+        target = self._db_path
+        if self._read_only:
+            target = f'file:{os.path.abspath(target)}?mode=ro'
+        self._con = sqlite3.connect(target, uri=self._read_only)
+        self._cur = self._con.cursor()
+        self._closed = False
+        for table_name, table_class in self._table_classes.items():
+            setattr(self, table_name, table_class(self._con))
 
-        return exists
+    def close(self):
+        """Close the owned connection. Calling twice is safe."""
 
-    @_db_exists.setter
-    def _db_exists(self, value):
-        """
-        This attribute should never be set directly
+        if self._con is not None and not self._closed:
+            self._con.close()
+        self._closed = True
 
-        """
+    def __enter__(self):
+        if self._con is None or self._closed:
+            if not self._db_exists:
+                raise FileNotFoundError(self._db_path)
+            self._connect()
+        return self
 
-        raise PermissionError('The "_db_exists" attribute cannot be directly set')
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type is not None and self._con is not None:
+            self._con.rollback()
+        self.close()
+        return False
+
+    @contextmanager
+    def transaction(self):
+        """Commit one logical state change or roll it back on failure."""
+
+        connection = self.connection
+        try:
+            yield connection
+        except BaseException:
+            connection.rollback()
+            raise
+        else:
+            connection.commit()
 
     def create_database(self):
-        """
-        Creates the database.
+        """Create and initialize a disposable database if absent."""
 
-        """
-
+        if self._read_only:
+            raise PermissionError('Cannot create a database in read-only mode.')
         if self._db_exists:
-
             click.echo(f'WARNING: {self._db_type} database already exists at {self._db_path}')
             click.echo(self._dashes)
             self._handle_database_exists()
+            if self._closed:
+                self._connect()
+            return
 
-        else:
-
-            try:
-                self._con = sqlite3.connect(self._db_path)
-                self._cur = self._con.cursor()
-
-            except PermissionError:
-                click.echo(f'Failed to initialize the {self._db_type} database at {self._db_path}. Do you have the required permissions to write to the requested directory? Exiting.')
-                sys.exit()
-
-            if self._db_exists:
-
-                self.__init__() #pylint:disable=unnecessary-dunder-call
-
-                self._initialize_database()
-
-                click.echo(f'{self._db_type} database initialized at {self._db_path}')
-
-            else:
-                click.echo(f'Failed to initialize the {self._db_type} database at {self._db_path}. Exiting.')
-                sys.exit()
+        parent = os.path.dirname(os.path.abspath(self._db_path))
+        os.makedirs(parent, exist_ok=True)
+        self._connect()
+        try:
+            with self.transaction():
+                for table in self.tables:
+                    getattr(self, table).initialize_table(commit=False)
+        except BaseException:
+            self.close()
+            raise
+        click.echo(f'{self._db_type} database initialized at {self._db_path}')
 
     def _handle_database_exists(self):
-        """
-        Handles the case when the user tries to run ``self.create_database()``
-            with a preexisting database.
-
-        """
-
-        proceed = log.ask_yes_no(f'Do you want to proceed with the current {self._db_type} database? [Y/n]\n')
-
+        proceed = log.ask_yes_no(
+            f'Do you want to proceed with the current {self._db_type} database? [Y/n]\n')
         if proceed == 'Y':
-
             click.echo(f'Proceeding with the current {self._db_type} database.')
-
-        elif proceed == 'n':
-
+        else:
             click.echo('Stopping, as requested.')
-            click.echo(self._dashes)
-
-            sys.exit()
-
-    def _initialize_database(self):
-        """
-        Initializes the SQL tables when the database is created.
-
-        """
-
-        for table in self.tables:
-            getattr(self, table).initialize_table()
+            raise RuntimeError('Database creation cancelled.')

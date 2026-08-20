@@ -223,5 +223,4 @@ class CommitJobs(JobTable,
 
             case _:
 
-                self._con.close()
                 raise ValueError(f'Cannot update the "commit_jobs" table. Invalid column name "{column_name}" given.')

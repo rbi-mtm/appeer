@@ -421,7 +421,4 @@ class Parses(ActionTable,
 
             case _:
 
-                self._con.close()
                 raise ValueError(f'Cannot update the "parses" table. Invalid column name "{column_name}" given.')
-
-        self._con.close()

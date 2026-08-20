@@ -242,7 +242,4 @@ class Scrapes(ActionTable,
 
             case _:
 
-                self._con.close()
                 raise ValueError(f'Cannot update the "scrapes" table. Invalid column name "{column_name}" given.')
-
-        self._con.close()
