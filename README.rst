@@ -2,8 +2,9 @@ appeer
 ======
 
 ``appeer`` is a command-line tool for collecting publication metadata and
-exploring how long peer review takes. It currently supports articles from the
-Royal Society of Chemistry and Nature Portfolio.
+exploring how long peer review takes. It supports current article pages from
+ACS Publications, APS Journals, Elsevier ScienceDirect, Nature Portfolio, and
+the Royal Society of Chemistry.
 
 The project is experimental and supports current article pages only.
 
