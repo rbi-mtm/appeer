@@ -2,6 +2,7 @@
 
 import csv
 import json
+from pathlib import Path
 
 from validation.scripts.analyze import calculate, wilson_interval
 from validation.scripts import common
@@ -9,6 +10,7 @@ from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
 from validation.scripts.pre_adjudication import reference_summary
+from validation.scripts.run_appeer import parse_file
 from validation.scripts.sample import fetch_frame, select
 from validation.scripts.screen_eligibility import classify
 
@@ -180,6 +182,18 @@ def test_reference_summary_does_not_turn_missingness_into_error():
         ('pubmed', 'pubmed_deposit'), ('pmc_jats', 'pmc_deposit'))], 'accepted')
     assert agreement['status'] == 'multi_source_agreement'
     assert agreement['date'] == '2025-01-02'
+
+
+def test_validation_runner_records_frozen_parser_output():
+    result = parse_file(
+        Path('tests/fixtures/acs_jacs_current_article.html'),
+        '10.1021/jacs.5c11789', 'frozen-revision')
+
+    assert result['success'] == 'true'
+    assert result['parser'] == 'Parser_ACS_ANY_txt'
+    assert result['published'] == '2025-11-10'
+    assert result['git_revision'] == 'frozen-revision'
+    assert len(result['input_sha256']) == 64
 
 
 def test_confirmatory_selection_uses_only_population_frame(tmp_path, monkeypatch):
