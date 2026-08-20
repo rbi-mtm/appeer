@@ -1,6 +1,7 @@
 """Inclusive search filters, JSON export, and safe aggregate tests."""
 
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -91,4 +92,5 @@ def test_suspicious_intervals_are_excluded_from_aggregates(tmp_path):
         researcher.search_pub()
         entry = researcher.filtered_pubs[0]
         assert entry.received_2_accepted is None
-        assert researcher.analyzer.basic_search_results['average_ra'] != 0
+        assert math.isnan(
+            researcher.analyzer.basic_search_results['average_ra'])

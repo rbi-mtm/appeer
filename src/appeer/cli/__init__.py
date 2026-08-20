@@ -5,24 +5,40 @@ The modules in this directory must be named cmd_<command>.py
 
 """
 
+import importlib
 import pkgutil
 import click
 
-@click.group(name='appeer')
+
+class FriendlyGroup(click.Group):
+    """Turn known initialization failures into concise CLI guidance."""
+
+    def invoke(self, ctx):
+        try:
+            return super().invoke(ctx)
+        except RuntimeError as exc:
+            if 'appeer is not initialized' in str(exc):
+                raise click.ClickException(str(exc)) from exc
+            raise
+
+
+@click.group(name='appeer', cls=FriendlyGroup)
 def appeer_cli():
     """
     Entry point for the ``appeer`` command
 
     """
 
-for loader, module_name, is_pkg in pkgutil.walk_packages(__path__):
+for module_info in pkgutil.iter_modules(__path__):
+
+    module_name = module_info.name
 
     if module_name.startswith('cmd'):
 
         cmd_name = module_name.split('_')[1]
         cmd_cli = f'{cmd_name}_cli'
 
-        module = loader.find_spec(module_name).loader.load_module(module_name)
+        module = importlib.import_module(f'{__name__}.{module_name}')
         command = getattr(module, cmd_cli)
 
         appeer_cli.add_command(command, name=cmd_name)

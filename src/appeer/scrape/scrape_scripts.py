@@ -161,9 +161,8 @@ def get_unparsed_job_labels():
 
     """
 
-    db = JobsDB()
-
-    unparsed_jobs = db.scrape_jobs.unparsed
+    with JobsDB() as db:
+        unparsed_jobs = db.scrape_jobs.unparsed
 
     unparsed_job_labels = [job.label for job in unparsed_jobs]
 
@@ -180,9 +179,8 @@ def get_executed_job_labels():
 
     """
 
-    db = JobsDB()
-
-    executed_jobs = db.scrape_jobs.executed
+    with JobsDB() as db:
+        executed_jobs = db.scrape_jobs.executed
 
     executed_job_labels = [job.label for job in executed_jobs]
 

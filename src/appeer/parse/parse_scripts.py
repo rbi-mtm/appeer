@@ -162,9 +162,8 @@ def get_uncommitted_job_labels():
 
     """
 
-    db = JobsDB()
-
-    uncommitted_jobs = db.parse_jobs.uncommitted
+    with JobsDB() as db:
+        uncommitted_jobs = db.parse_jobs.uncommitted
 
     uncommitted_job_labels = [job.label for job in uncommitted_jobs]
 
@@ -181,9 +180,8 @@ def get_executed_job_labels():
 
     """
 
-    db = JobsDB()
-
-    executed_jobs = db.parse_jobs.executed
+    with JobsDB() as db:
+        executed_jobs = db.parse_jobs.executed
 
     executed_job_labels = [job.label for job in executed_jobs]
 

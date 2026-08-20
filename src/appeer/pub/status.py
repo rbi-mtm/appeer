@@ -18,9 +18,8 @@ def unique_publishers_report():
 
     """
 
-    pub = PubDB(read_only=True).pub
-
-    unique_publishers = pub.get_unique_publishers()
+    with PubDB(read_only=True) as database:
+        unique_publishers = database.pub.get_unique_publishers()
 
     if not unique_publishers:
         return 'No publishers found.'
@@ -59,9 +58,8 @@ def unique_journals_report(publisher):
 
     """
 
-    pub = PubDB(read_only=True).pub
-
-    unique_journals = pub.get_unique_journals(publisher)
+    with PubDB(read_only=True) as database:
+        unique_journals = database.pub.get_unique_journals(publisher)
 
     if not unique_journals:
         return f'No journals found for publisher "{publisher}".'
@@ -100,9 +98,9 @@ def publisher_summary_report(publisher):
 
     """
 
-    pub = PubDB(read_only=True).pub
-
-    publisher_summary = pub.get_publisher_summary(publisher=publisher)
+    with PubDB(read_only=True) as database:
+        publisher_summary = database.pub.get_publisher_summary(
+            publisher=publisher)
 
     if not publisher_summary:
         return f'No entries found for publisher "{publisher}".'
@@ -150,11 +148,10 @@ def journal_summary_report(publisher, journal):
 
     """
 
-    pub = PubDB(read_only=True).pub
-
-    journal_summary = pub.get_journal_summary(
-            publisher=publisher,
-            journal=journal)
+    with PubDB(read_only=True) as database:
+        journal_summary = database.pub.get_journal_summary(
+                publisher=publisher,
+                journal=journal)
 
     if not journal_summary:
         _msg = f'No entries found for publisher "{publisher}" and journal "{journal}".'
