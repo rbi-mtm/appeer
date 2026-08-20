@@ -230,7 +230,8 @@ class ScrapeJob(Job, job_type='scrape_job'): #pylint:disable=too-many-instance-a
         for i, plan_entry in enumerate(plan.strategies.values()):
 
             action = ScrapeAction(label=self.label,
-                    action_index=self.no_of_publications + i)
+                    action_index=self.no_of_publications + i,
+                    _db=self._db)
 
             action.new_action(plan_entry=plan_entry)
 

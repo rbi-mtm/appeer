@@ -50,7 +50,8 @@ class ScrapeAction(Action, action_type='scrape'): #pylint:disable=too-many-insta
 
     """
 
-    def __init__(self, label=None, action_index=None, action_mode='read'):
+    def __init__(self, label=None, action_index=None, action_mode='read',
+                 _db=None):
         """
         Connects to the job database and sets the action label and index
 
@@ -65,7 +66,8 @@ class ScrapeAction(Action, action_type='scrape'): #pylint:disable=too-many-insta
 
         super().__init__(label=label,
                 action_index=action_index,
-                action_mode=action_mode)
+                action_mode=action_mode,
+                _db=_db)
 
         self.__download_directory = None
 

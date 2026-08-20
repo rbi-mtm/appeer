@@ -127,6 +127,11 @@ class Job(abc.ABC):
 
         self._queue = None
         self._db = JobsDB()
+        self._log_path = None
+        if self.label and self._db._db_exists: #pylint:disable=protected-access
+            entry = self._job_entry
+            if entry:
+                self._log_path = entry.log
 
     def close(self):
         self._db.close()
@@ -231,7 +236,7 @@ class Job(abc.ABC):
                             label=self.label)
 
                     _actions = [ScrapeAction(label=entry.label,
-                        action_index=entry.action_index)
+                        action_index=entry.action_index, _db=self._db)
                         for entry in __scrape_entries]
 
                 case 'parse_job':
@@ -240,7 +245,7 @@ class Job(abc.ABC):
                             label=self.label)
 
                     _actions = [ParseAction(label=entry.label,
-                        action_index=entry.action_index)
+                        action_index=entry.action_index, _db=self._db)
                         for entry in __parse_entries]
 
                 case 'commit_job':
@@ -249,7 +254,7 @@ class Job(abc.ABC):
                             label=self.label)
 
                     _actions = [CommitAction(label=entry.label,
-                        action_index=entry.action_index)
+                        action_index=entry.action_index, _db=self._db)
                         for entry in __commit_entries]
 
             _actions.sort(key=lambda x: x.action_index)
@@ -434,6 +439,7 @@ class Job(abc.ABC):
                 date=self.__date,
                 log_path=log_path,
                 **kwargs)
+        self._log_path = log_path
 
     def _initialize_db_entry(self, description, date, log_path, **kwargs):
         """
@@ -489,7 +495,11 @@ class Job(abc.ABC):
 
         """
 
-        _logger = _log.init_logger(log_path=self.log, log_name=self.label)
+        log_path = self._log_path
+        if log_path is None:
+            log_path = self.log
+            self._log_path = log_path
+        _logger = _log.init_logger(log_path=log_path, log_name=self.label)
         _logger.info(text)
 
     def _log_server(self):

@@ -105,7 +105,8 @@ class Action(abc.ABC):
             prop = ActionProperty(field)
             setattr(cls, field, prop)
 
-    def __init__(self, label=None, action_index=None, action_mode='read'):
+    def __init__(self, label=None, action_index=None, action_mode='read',
+                 _db=None):
         """
         Connects to the jobs database and sets the action label and index
 
@@ -137,10 +138,12 @@ class Action(abc.ABC):
         Action._define_db_properties(action_fields=action_fields)
 
         self._queue = None
-        self._db = JobsDB()
+        self._owns_db = _db is None
+        self._db = _db or JobsDB()
 
     def close(self):
-        self._db.close()
+        if self._owns_db:
+            self._db.close()
 
     def __enter__(self):
         return self

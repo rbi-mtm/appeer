@@ -106,3 +106,17 @@ def test_job_checkpoint_survives_reopen_and_interrupted_update_rolls_back(tmp_pa
 
     assert reopened.scrape_jobs.get_job('resume_test').job_step == 2
     reopened.close()
+
+
+def test_table_writes_roll_back_with_their_logical_transaction(tmp_path):
+    database = PubDB(db_path=tmp_path / 'pub.db')
+    database.create_database()
+
+    with pytest.raises(RuntimeError), database.transaction():
+        database.pub.add_entry(**nature_metadata())
+        raise RuntimeError('simulated interruption')
+
+    assert database.connection.execute(
+        'SELECT COUNT(*) FROM pub').fetchone()[0] == 0
+    assert not database.connection.in_transaction
+    database.close()

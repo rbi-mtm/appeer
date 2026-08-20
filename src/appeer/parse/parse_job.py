@@ -395,7 +395,8 @@ class ParseJob(Job, job_type='parse_job'): #pylint:disable=too-many-instance-att
         for i, parse_entry in enumerate(parse_packet):
 
             action = ParseAction(label=self.label,
-                    action_index=self.no_of_publications + i)
+                    action_index=self.no_of_publications + i,
+                    _db=self._db)
 
             action.new_action(parse_entry=parse_entry)
 

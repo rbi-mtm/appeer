@@ -256,7 +256,8 @@ class CommitJob(Job, job_type='commit_job'): #pylint:disable=too-many-instance-a
         for i, commit_entry in enumerate(commit_packet):
 
             action = CommitAction(label=self.label,
-                    action_index=self.no_of_publications + i)
+                    action_index=self.no_of_publications + i,
+                    _db=self._db)
 
             action.new_action(commit_entry=commit_entry)
 

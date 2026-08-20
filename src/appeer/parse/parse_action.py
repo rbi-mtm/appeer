@@ -90,7 +90,8 @@ class ParseAction(Action, action_type='parse'): #pylint:disable=too-many-instanc
 
     """
 
-    def __init__(self, label=None, action_index=None, action_mode='read'):
+    def __init__(self, label=None, action_index=None, action_mode='read',
+                 _db=None):
         """
         Connects to the job database and sets the action label and index
 
@@ -105,7 +106,8 @@ class ParseAction(Action, action_type='parse'): #pylint:disable=too-many-instanc
 
         super().__init__(label=label,
                 action_index=action_index,
-                action_mode=action_mode)
+                action_mode=action_mode,
+                _db=_db)
 
     def new_action(self,
             parse_entry,

@@ -13,6 +13,28 @@ from appeer.general.datadir import Datadir
 from appeer.db.tables.registered_tables import get_registered_tables
 
 
+class ManagedConnection(sqlite3.Connection):
+    """Defer incidental table commits while a logical transaction is active."""
+
+    def commit(self):
+        if getattr(self, '_appeer_transaction_depth', 0) == 0:
+            super().commit()
+
+    def force_commit(self):
+        """Commit regardless of the logical transaction depth."""
+
+        super().commit()
+
+    def rollback(self):
+        if getattr(self, '_appeer_transaction_depth', 0) == 0:
+            super().rollback()
+
+    def force_rollback(self):
+        """Roll back regardless of the logical transaction depth."""
+
+        super().rollback()
+
+
 class DB(abc.ABC):
     """Own exactly one SQLite connection and stable table interfaces."""
 
@@ -77,7 +99,9 @@ class DB(abc.ABC):
         target = self._db_path
         if self._read_only:
             target = f'file:{os.path.abspath(target)}?mode=ro'
-        self._con = sqlite3.connect(target, uri=self._read_only)
+        self._con = sqlite3.connect(
+            target, uri=self._read_only, factory=ManagedConnection)
+        self._con._appeer_transaction_depth = 0
         self._cur = self._con.cursor()
         self._closed = False
         for table_name, table_class in self._table_classes.items():
@@ -99,7 +123,7 @@ class DB(abc.ABC):
 
     def __exit__(self, exc_type, exc_value, traceback):
         if exc_type is not None and self._con is not None:
-            self._con.rollback()
+            self._con.force_rollback()
         self.close()
         return False
 
@@ -108,13 +132,19 @@ class DB(abc.ABC):
         """Commit one logical state change or roll it back on failure."""
 
         connection = self.connection
+        outermost = connection._appeer_transaction_depth == 0
+        connection._appeer_transaction_depth += 1
         try:
             yield connection
         except BaseException:
-            connection.rollback()
+            if outermost:
+                connection.force_rollback()
             raise
         else:
-            connection.commit()
+            if outermost:
+                connection.force_commit()
+        finally:
+            connection._appeer_transaction_depth -= 1
 
     def create_database(self):
         """Create and initialize a disposable database if absent."""
