@@ -1,0 +1,30 @@
+version: 1
+failures:
+  software:
+    - template_changed
+    - transport_blocked
+    - date_exists_parser_missed
+    - wrong_semantic_date
+    - date_normalization_error
+    - unsupported_current_structure
+  upstream:
+    - metadata_sources_disagree
+    - date_only_in_pdf_or_xml
+    - malformed_publisher_metadata
+    - impossible_publisher_sequence
+    - publisher_page_changed_after_release
+  eligibility:
+    - non_peer_reviewed_content
+    - correction_editorial_or_news
+    - transferred_or_resubmitted_manuscript
+    - multiple_article_versions
+  identity:
+    - doi_article_mismatch
+    - duplicate_doi
+    - wrong_publisher
+  measurement:
+    - partial_date_precision
+    - timezone_day_boundary
+    - semantic_definition_mismatch
+    - reference_source_missing
+    - truth_unresolved

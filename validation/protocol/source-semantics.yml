@@ -1,0 +1,38 @@
+version: 1
+targets:
+  received:
+    accepted_concepts: [received, submitted_initial]
+    rejected_concepts: [revised, transferred, resubmitted]
+  accepted:
+    accepted_concepts: [accepted_editorial, accepted]
+    rejected_concepts: [accepted_production, proof_approved]
+  published:
+    precedence:
+      - public_peer_reviewed_accepted_manuscript
+      - ahead_of_print
+      - published_online
+      - available_online
+      - first_published
+      - version_of_record
+      - print_if_first_public_availability
+    rejected_concepts: [preprint, repository_release, index_date, issue_date,
+      collection_date, copyright_year]
+observation_statuses:
+  - observed
+  - source_not_covered
+  - source_field_missing
+  - source_inaccessible
+  - partial_precision
+  - semantic_noncomparable
+  - source_conflict
+  - malformed
+adjudication_statuses:
+  - resolved
+  - genuinely_absent
+  - truth_unresolved
+appeer_statuses:
+  - exact
+  - within_one_day
+  - wrong
+  - wrong_semantic
+  - missing

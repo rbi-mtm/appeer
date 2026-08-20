@@ -1,0 +1,11 @@
+publisher,journal,issn,years,crossref_articles,europe_pmc_records,europe_pmc_full_text,retrieved_at,notes
+NAT,Scientific Reports,2045-2322,2021-2025,151168,151221,150704,2026-08-20,Counts can change as records are updated
+NAT,Nature Communications,2041-1723,2021-2025,47425,47435,47267,2026-08-20,Counts can change as records are updated
+RSC,Chemical Science,2041-6539,2021-2025,9489,8505,8448,2026-08-20,Europe PMC coverage is below the Crossref frame
+RSC,RSC Advances,2046-2069,2021-2025,18278,18244,18147,2026-08-20,High repository coverage
+ACS,Journal of the American Chemical Society,0002-7863,2021-2025,17017,16403,5072,2026-08-20,High indexing but limited full text
+ACS,ACS Nano,1936-0851,2021-2025,11825,11467,2092,2026-08-20,High indexing but limited full text
+APS,Physical Review Letters,0031-9007,2021-2025,12302,12299,52,2026-08-20,Full text is negligible
+APS,Physical Review B,2469-9950,2021-2025,26040,0,0,2026-08-20,Exact-title query did not resolve the abbreviated Europe PMC journal name
+ELS,Journal of Cleaner Production,0959-6526,2021-2025,22113,469,104,2026-08-20,Non-biomedical repository coverage is sparse
+ELS,Neuroscience,0306-4522,2021-2025,2809,2421,206,2026-08-20,Biomedical indexing is broad but full text remains limited
