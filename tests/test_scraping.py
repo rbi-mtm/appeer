@@ -108,6 +108,49 @@ def test_http_success_block_page_is_not_an_article():
     assert request.error == 'Response is not a supported article page'
 
 
+@pytest.mark.parametrize(('url', 'publisher', 'doi'), [
+    ('https://pubs.acs.org/doi/example',
+     'American Chemical Society', '10.1021/example'),
+    ('https://journals.aps.org/prl/abstract/example',
+     'American Physical Society', '10.1103/example'),
+    ('https://www.sciencedirect.com/science/article/pii/example',
+     'Elsevier', '10.1016/example'),
+])
+def test_new_publisher_article_responses_require_matching_metadata(
+        url, publisher, doi):
+    article = (
+        '<html><head>'
+        f'<meta name="citation_publisher" content="{publisher}">'
+        f'<meta name="citation_doi" content="{doi}">'
+        '</head></html>'
+    )
+    request = Request(url, session=FakeSession([
+        FakeResponse(text=article, url=url),
+    ]))
+
+    request.send(max_tries=1)
+
+    assert request.success
+
+
+def test_article_response_rejects_cross_publisher_doi_prefix():
+    article = (
+        '<html><head>'
+        '<meta name="citation_publisher" content="American Chemical Society">'
+        '<meta name="citation_doi" content="10.1103/example">'
+        '</head></html>'
+    )
+    url = 'https://pubs.acs.org/doi/example'
+    request = Request(url, session=FakeSession([
+        FakeResponse(text=article, url=url),
+    ]))
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Response is not a supported article page'
+
+
 def test_redirect_to_unregistered_hostname_is_rejected_before_following():
     session = FakeSession([FakeResponse(302, headers={
         'Location': 'https://evil.example/article'})])
@@ -132,9 +175,13 @@ def test_request_exception_is_reported_without_escaping():
 
 
 @pytest.mark.parametrize(('url', 'expected_journal'), [
+    ('https://pubs.acs.org/doi/10.1021/example', 'ACS'),
+    ('https://journals.aps.org/prl/abstract/10.1103/example', 'APS'),
+    ('https://www.sciencedirect.com/science/article/pii/example', 'ELS'),
     ('https://pubs.rsc.org/article', 'RSC'),
     ('https://www.nature.com/articles/example', 'NAT'),
     ('https://pubs.rsc.org.evil.example/article', 'Unknown'),
+    ('https://www.sciencedirect.com.evil.example/article', 'Unknown'),
     ('https://pubs.rsc.org@evil.example/article', 'Invalid_URL'),
     ('https://pubs.rsc.org:444/article', 'Invalid_URL'),
     ('http://pubs.rsc.org/article', 'Invalid_URL'),

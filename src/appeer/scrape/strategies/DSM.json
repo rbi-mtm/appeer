@@ -29,6 +29,24 @@
 	"web_domain":    "www.nature.com",
 	"journal_code":  "NAT",
 	"strategy_code": "html"
+	},
+
+	{
+	"web_domain":    "pubs.acs.org",
+	"journal_code":  "ACS",
+	"strategy_code": "html"
+	},
+
+	{
+	"web_domain":    "journals.aps.org",
+	"journal_code":  "APS",
+	"strategy_code": "html"
+	},
+
+	{
+	"web_domain":    "www.sciencedirect.com",
+	"journal_code":  "ELS",
+	"strategy_code": "html"
 	}
 
 	]

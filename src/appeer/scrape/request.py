@@ -20,7 +20,14 @@ DEFAULT_USER_AGENT = (
     'contact: juraj.ovcar@gmail.com)'
 )
 
-SUPPORTED_HOSTS = {'doi.org', 'pubs.rsc.org', 'www.nature.com'}
+SUPPORTED_HOSTS = {
+    'doi.org',
+    'journals.aps.org',
+    'pubs.acs.org',
+    'pubs.rsc.org',
+    'www.nature.com',
+    'www.sciencedirect.com',
+}
 
 
 class Request:
@@ -160,6 +167,15 @@ class Request:
                     and publisher in ('Nature Publishing Group',
                                       'Nature Research', 'Nature Portfolio',
                                       'Springer Nature'))
+        if hostname == 'pubs.acs.org':
+            return (doi.casefold().startswith('10.1021/')
+                    and publisher == 'American Chemical Society')
+        if hostname == 'journals.aps.org':
+            return (doi.casefold().startswith('10.1103/')
+                    and publisher == 'American Physical Society')
+        if hostname == 'www.sciencedirect.com':
+            return (doi.casefold().startswith('10.1016/')
+                    and publisher == 'Elsevier')
         return False
 
     @staticmethod
