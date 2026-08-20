@@ -39,3 +39,7 @@ addopts = '--cov -rs'
 
 [tool.setuptools.dynamic]
 version = {attr = 'appeer.__version__'}
+
+[tool.setuptools.packages.find]
+where = ['src']
+exclude = ['appeer.tests*']
