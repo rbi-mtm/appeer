@@ -1,7 +1,5 @@
 """Defines the ``appeer pub`` CLI"""
 
-import traceback
-
 import click
 
 from appeer.pub import status
@@ -125,6 +123,7 @@ def pub_cli(ctx, **kwargs):
 @click.option('--get_title', is_flag=True, default=False, help='Include publication titles in the results')
 @click.option('--get_publication_type', is_flag=True, default=False, help='Include publication types in the results')
 @click.option('--get_no_of_authors', is_flag=True, default=False, help='Include number of authors in the results')
+@click.option('--get_author_names', is_flag=True, default=False, help='Include author names in the results')
 @click.option('--get_affiliations', is_flag=True, default=False, help='Include affiliations in the results')
 
 def pub_search_cli(**kwargs):
@@ -151,20 +150,25 @@ def pub_search_cli(**kwargs):
         else:
             pass
 
-    researcher = PubReSearcher()
-
     try:
+        with PubReSearcher() as researcher:
+            researcher.search_pub(
+                    get_title=kwargs['get_title'],
+                    get_publication_type=kwargs['get_publication_type'],
+                    get_no_of_authors=kwargs['get_no_of_authors'],
+                    get_author_names=kwargs['get_author_names'],
+                    get_affiliations=kwargs['get_affiliations'],
+                    **clean_dict)
 
-        researcher.search_pub(
-                get_title=kwargs['get_title'],
-                get_publication_type=kwargs['get_publication_type'],
-                get_no_of_authors=kwargs['get_no_of_authors'],
-                get_affiliations=kwargs['get_affiliations'],
-                **clean_dict)
-
-        click.echo(researcher.search_summary)
+            if kwargs['output']:
+                researcher.write_json(kwargs['output'])
+                click.echo(f'Wrote {len(researcher.filtered_pubs)} publications to {kwargs["output"]}')
+            else:
+                click.echo(researcher.search_summary)
 
     except ValueError as exc:
         click.echo(f'Search failed. Most likely, an invalid filter was passed. Possible cause: {exc.__cause__}')
+    except RuntimeError as exc:
+        raise click.ClickException(str(exc)) from exc
 
 pub_cli.add_command(pub_search_cli)

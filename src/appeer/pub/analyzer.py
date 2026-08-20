@@ -103,20 +103,20 @@ class PubAnalyzer:
                     for pub in self._filtered_pubs])
 
 
-            _basic_search_results['average_ra'] =\
-                    np.average([pub.received_2_accepted
-                    for pub in self._filtered_pubs])
-
-            _basic_search_results['average_rp'] =\
-                    np.average([pub.received_2_published
-                    for pub in self._filtered_pubs])
-
-            _basic_search_results['average_ap'] =\
-                    np.average([pub.accepted_2_published
-                    for pub in self._filtered_pubs])
+            _basic_search_results['average_ra'] = self._safe_average(
+                pub.received_2_accepted for pub in self._filtered_pubs)
+            _basic_search_results['average_rp'] = self._safe_average(
+                pub.received_2_published for pub in self._filtered_pubs)
+            _basic_search_results['average_ap'] = self._safe_average(
+                pub.accepted_2_published for pub in self._filtered_pubs)
 
         else:
             _basic_search_results = {}
 
 
         return _basic_search_results
+
+    @staticmethod
+    def _safe_average(values):
+        valid = [value for value in values if value is not None and value >= 0]
+        return float(np.average(valid)) if valid else float('nan')

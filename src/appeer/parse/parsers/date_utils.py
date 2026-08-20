@@ -24,6 +24,7 @@ The normalize_* functions transform the date to the ISO format:
 
 import re
 import datetime
+import calendar
 
 from appeer.general import utils as _utils
 
@@ -207,7 +208,7 @@ def normalize_d_M_y(dMY_date):
 
     return normalized_dMy_date
 
-def normalize_date_2iso(date):
+def normalize_date_2iso(date, end=False):
     """
     Transforms ``date`` into the standard format (YYYY-MM-DD)
 
@@ -238,6 +239,10 @@ def normalize_date_2iso(date):
 
     if not isinstance(date, str):
         raise ValueError('Invalid date passed; must be a string.')
+
+    if not re.fullmatch(r'\d{4}(?:-\d{1,2})?(?:-\d{1,2})?', date):
+        raise ValueError(
+            'Invalid date passed; must be in YYYY, YYYY-MM or YYYY-MM-DD format.')
 
     split_date = date.split('-')
 
@@ -287,11 +292,13 @@ def normalize_date_2iso(date):
 
         # Case when only YYYY was passsed
         case 1:
-            normalized_date = f'{year_str}-01-01'
+            normalized_date = f'{year_str}-12-31' if end else f'{year_str}-01-01'
 
         # Case when MM-YYYY was passed
         case 2:
-            normalized_date = f'{year_str}-{month_str}-01'
+            last_day = calendar.monthrange(year, month)[1]
+            day = last_day if end else 1
+            normalized_date = f'{year_str}-{month_str}-{day:02d}'
 
         case 3:
             normalized_date = f'{year_str}-{month_str}-{day_str}'

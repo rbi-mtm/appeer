@@ -1,4 +1,6 @@
-"""Filter, plot, analyze results from pub.db"""
+"""Filter, export, and analyze results from pub.db."""
+
+import json
 
 import appeer.general.utils as _utils
 import appeer.general.log as _log
@@ -13,7 +15,7 @@ class PubReSearcher:
 
     """
 
-    def __init__(self, filtered_pubs=None):
+    def __init__(self, filtered_pubs=None, db_path=None):
         """
         Connects to the pub.db database
 
@@ -27,7 +29,8 @@ class PubReSearcher:
 
         """
 
-        self._pub = PubDB(read_only=True).pub
+        self._db = PubDB(read_only=True, db_path=db_path)
+        self._pub = self._db.pub
 
         if filtered_pubs is None:
             filtered_pubs = []
@@ -40,11 +43,22 @@ class PubReSearcher:
 
         self.analyzer = PubAnalyzer(filtered_pubs=self.filtered_pubs)
 
+    def close(self):
+        self._db.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+        return False
+
 
     def search_pub(self,
                    get_title=False,
                    get_publication_type=False,
                    get_no_of_authors=False,
+                   get_author_names=False,
                    get_affiliations=False,
                    **kwargs):
         """
@@ -112,11 +126,27 @@ class PubReSearcher:
                 get_title=get_title,
                 get_publication_type=get_publication_type,
                 get_no_of_authors=get_no_of_authors,
+                get_author_names=get_author_names,
                 get_affiliations=get_affiliations,
                 **kwargs)
 
         self._search_performed = True
         self.analyzer.load_data(filtered_pubs=self.filtered_pubs)
+
+    @property
+    def search_json(self):
+        """Return documented JSON-ready search results."""
+
+        if not self._search_performed:
+            raise RuntimeError('No search has been performed.')
+        return [publication._asdict() for publication in self.filtered_pubs]
+
+    def write_json(self, output_path):
+        """Write current search results as UTF-8 JSON."""
+
+        with open(output_path, 'w', encoding='utf-8') as output_file:
+            json.dump(self.search_json, output_file, ensure_ascii=False, indent=2)
+            output_file.write('\n')
 
 
     @property
