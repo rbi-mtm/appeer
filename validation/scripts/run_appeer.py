@@ -44,6 +44,26 @@ TRANSIENT_HOSTS = {
 }
 
 
+class PublisherRateLimiter:
+    """Keep one request clock across every article for one publisher."""
+
+    def __init__(self, interval, clock=time.monotonic, sleeper=time.sleep):
+        self.interval = interval
+        self.clock = clock
+        self.sleeper = sleeper
+        self.last_request = None
+
+    def wait(self):
+        if self.last_request is None:
+            return
+        remaining = self.interval - (self.clock() - self.last_request)
+        if remaining > 0:
+            self.sleeper(remaining)
+
+    def mark(self):
+        self.last_request = self.clock()
+
+
 def git_revision():
     try:
         result = subprocess.run(
@@ -108,22 +128,20 @@ def publisher_url(article):
 
 
 def retrieve(session, requested, publisher, timeout, user_agent,
-             minimum_interval):
+             minimum_interval, limiter=None):
     current = requested
-    last_request = 0.0
+    limiter = limiter or PublisherRateLimiter(minimum_interval)
     response = None
     for redirect in range(8):
         if not allowed_url(current, publisher):
             raise ValueError(f'unsupported redirect host: {urlsplit(current).hostname}')
-        elapsed = time.monotonic() - last_request
-        if elapsed < minimum_interval:
-            time.sleep(minimum_interval - elapsed)
+        limiter.wait()
         response = session.get(
             current, headers={
                 'User-Agent': user_agent,
                 'Accept': 'text/html,application/xhtml+xml',
             }, timeout=timeout, allow_redirects=False)
-        last_request = time.monotonic()
+        limiter.mark()
         if response.status_code == 429:
             time.sleep(retry_delay(response, 10))
             continue
@@ -196,6 +214,7 @@ def parse_file(path, expected_doi, revision):
 
 def process_publisher(publisher, articles, args, revision):
     session = requests.Session()
+    limiter = PublisherRateLimiter(args.minimum_interval)
     result_checkpoint = args.checkpoints / f'{publisher}-results.csv'
     retrieval_checkpoint = args.checkpoints / f'{publisher}-retrievals.csv'
     refresh = publisher in args.refresh_publisher
@@ -216,7 +235,7 @@ def process_publisher(publisher, articles, args, revision):
         try:
             response, final_url = retrieve(
                 session, requested, publisher, args.timeout, args.user_agent,
-                args.minimum_interval)
+                args.minimum_interval, limiter)
             content = response.content
             digest = hashlib.sha256(content).hexdigest()
             raw_path = args.raw / publisher / f'{digest}.html'

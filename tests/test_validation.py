@@ -10,7 +10,8 @@ from validation.scripts.common import (
     StudyClient, canonical_doi, crossref_date, write_csv)
 from validation.scripts.harvest import parse_jats_xml, parse_pubmed_xml
 from validation.scripts.pre_adjudication import compare, reference_summary
-from validation.scripts.run_appeer import parse_file, publisher_url, retrieve
+from validation.scripts.run_appeer import (
+    parse_file, PublisherRateLimiter, publisher_url, retrieve)
 from validation.scripts.sample import fetch_frame, select
 from validation.scripts.screen_eligibility import classify
 
@@ -240,6 +241,21 @@ def test_runner_uses_direct_nature_and_rsc_article_urls():
         'journal': 'Environmental Science: Processes & Impacts', 'year': '2025',
     }) == ('https://pubs.rsc.org/en/content/articlehtml/2025/em/'
            'd5em00177c')
+
+
+def test_publisher_rate_limiter_persists_across_articles():
+    ticks = iter((10.0, 10.2, 11.2))
+    sleeps = []
+    limiter = PublisherRateLimiter(
+        1, clock=lambda: next(ticks), sleeper=sleeps.append)
+
+    limiter.wait()
+    limiter.mark()
+    limiter.wait()
+    limiter.mark()
+
+    assert len(sleeps) == 1
+    assert 0.79 < sleeps[0] < 0.81
 
 
 def test_confirmatory_selection_uses_only_population_frame(tmp_path, monkeypatch):
