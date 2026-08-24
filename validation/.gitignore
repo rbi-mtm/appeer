@@ -5,3 +5,5 @@ sampling/frames/
 references/raw/*/
 runs/raw/
 runs/checkpoints/
+pubmed-pilot/discovery-raw/
+pubmed-pilot/html/
