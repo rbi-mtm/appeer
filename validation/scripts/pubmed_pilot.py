@@ -432,14 +432,14 @@ def compare(args):
             })
     write_csv(args.comparisons, COMPARISON_FIELDS, comparisons)
     write_csv(args.disagreements, COMPARISON_FIELDS, [
-        row for row in comparisons if row['status'] != 'exact'])
+        row for row in comparisons if row['status'] == 'mismatch'])
 
     summary = []
     for publisher in ('OVERALL', *PUBLISHER_ORDER):
         scoped = comparisons if publisher == 'OVERALL' else [
             row for row in comparisons if row['publisher'] == publisher]
-        for target in ('received', 'accepted', 'published', 'all_fields'):
-            rows = scoped if target == 'all_fields' else [
+        for target in ('received', 'accepted', 'published'):
+            rows = [
                 row for row in scoped if row['target_field'] == target]
             counts = Counter(row['status'] for row in rows)
             compared = counts['exact'] + counts['mismatch']
@@ -454,6 +454,70 @@ def compare(args):
                     if compared else ''),
             })
     write_csv(args.summary, SUMMARY_FIELDS, summary)
+
+    sample_counts = Counter(row['publisher'] for row in sample)
+    retrieved_counts = Counter(
+        row['publisher'] for row in appeer.values()
+        if row['transport_success'] == 'true')
+    report = [
+        '# PubMed pilot result',
+        '',
+        'The frozen sample contains 50 articles for which PubMed supplied '
+        'received, accepted, and electronic-publication dates. This is a '
+        'benchmark conditional on complete PubMed metadata, not a test of '
+        'metadata coverage in ordinary journal populations.',
+        '',
+        '## Sample and retrieval',
+        '',
+        '| Publisher | Articles | Publisher pages retrieved |',
+        '|---|---:|---:|',
+    ]
+    for publisher in PUBLISHER_ORDER:
+        report.append(
+            f'| {publisher} | {sample_counts[publisher]} | '
+            f'{retrieved_counts[publisher]} |')
+    report.extend([
+        f'| **Overall** | **{len(sample)}** | '
+        f'**{sum(retrieved_counts.values())}** |',
+        '',
+        'APS contributes no articles because the searched APS journals did '
+        'not expose complete PubMed lifecycle triplets in the discovery '
+        'records.',
+        '',
+        '## Exact comparison',
+        '',
+        '| Publisher | Date | N compared | Exact | Mismatch | Missing | Exact agreement |',
+        '|---|---|---:|---:|---:|---:|---:|',
+    ])
+    for row in summary:
+        agreement = (f'{row["percent_exact_agreement"]}%'
+                     if row['percent_exact_agreement'] else 'not estimable')
+        report.append(
+            f'| {row["publisher"]} | {row["target_field"]} | '
+            f'{row["n_compared"]} | {row["exact_matches"]} | '
+            f'{row["mismatches"]} | {row["missing_values"]} | '
+            f'{agreement} |')
+    overall_compared = sum(
+        int(row['n_compared']) for row in summary
+        if row['publisher'] == 'OVERALL')
+    report.extend(['', '## Conclusion', ''])
+    if not overall_compared:
+        report.extend([
+            'No publisher article page was retrieved successfully in this '
+            'environment, so `appeer` produced no dates. Accuracy is therefore '
+            'not estimable from this run. These unavailable outputs are counted '
+            'as missing, not as date disagreements; `disagreements.csv` contains '
+            'only genuine unequal date pairs.',
+            '',
+            'Do not scale this exact procedure to 1,250 articles yet. First '
+            'establish reliable publisher-page retrieval, then rerun this '
+            'frozen pilot without changing the DOI list or parsers.',
+        ])
+    else:
+        report.append(
+            'Review the disagreement table and retrieval failures before '
+            'deciding whether to scale this procedure.')
+    args.report.write_text('\n'.join(report) + '\n', encoding='utf-8')
 
 
 def parser():
@@ -504,6 +568,8 @@ def parser():
                                 default=PILOT_ROOT / 'disagreements.csv')
     compare_parser.add_argument('--summary', type=Path,
                                 default=PILOT_ROOT / 'summary.csv')
+    compare_parser.add_argument('--report', type=Path,
+                                default=PILOT_ROOT / 'report.md')
     compare_parser.set_defaults(action=compare)
     return root
 

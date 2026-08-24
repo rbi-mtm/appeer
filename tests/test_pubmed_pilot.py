@@ -6,8 +6,8 @@ from pathlib import Path
 
 from validation.scripts.common import write_csv
 from validation.scripts.pubmed_pilot import (
-    CANDIDATE_FIELDS, candidate_is_eligible, freeze, parse_pubmed_xml,
-    publisher_url)
+    APPEER_FIELDS, CANDIDATE_FIELDS, REFERENCE_FIELDS, SAMPLE_FIELDS,
+    candidate_is_eligible, compare, freeze, parse_pubmed_xml, publisher_url)
 
 
 PUBMED_XML = b'''<PubmedArticleSet><PubmedArticle>
@@ -84,3 +84,44 @@ def test_sciencedirect_url_uses_pubmed_pii():
         'journal': 'Example',
     }, {'pii': 'S123'}) == (
         'https://www.sciencedirect.com/science/article/pii/S123')
+
+
+def test_missing_appeer_date_is_not_a_disagreement(tmp_path):
+    sample = {field: '' for field in SAMPLE_FIELDS}
+    sample.update({
+        'doi': '10.1000/example', 'pmid': '123', 'publisher': 'ELS',
+        'journal': 'Example',
+    })
+    reference = {field: '' for field in REFERENCE_FIELDS}
+    reference.update({
+        **sample, 'received': '2024-01-02', 'accepted': '2025-02-03',
+        'published': '2025-03-05',
+    })
+    result = {field: '' for field in APPEER_FIELDS}
+    result.update({
+        'doi': sample['doi'], 'publisher': 'ELS', 'journal': 'Example',
+        'transport_success': 'false', 'transport_error': 'HTTP 403',
+    })
+    paths = {
+        name: tmp_path / f'{name}.csv'
+        for name in ('sample', 'references', 'appeer', 'comparisons',
+                     'disagreements', 'summary')
+    }
+    write_csv(paths['sample'], SAMPLE_FIELDS, [sample])
+    write_csv(paths['references'], REFERENCE_FIELDS, [reference])
+    write_csv(paths['appeer'], APPEER_FIELDS, [result])
+
+    compare(argparse.Namespace(
+        **paths, report=tmp_path / 'report.md'))
+
+    with paths['disagreements'].open(encoding='utf-8', newline='') as stream:
+        assert list(csv.DictReader(stream)) == []
+    with paths['summary'].open(encoding='utf-8', newline='') as stream:
+        summary = list(csv.DictReader(stream))
+    overall_received = next(
+        row for row in summary
+        if row['publisher'] == 'OVERALL'
+        and row['target_field'] == 'received')
+    assert overall_received['n_compared'] == '0'
+    assert overall_received['mismatches'] == '0'
+    assert overall_received['missing_values'] == '1'
