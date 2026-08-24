@@ -31,6 +31,7 @@ class FakeSession:
     def __init__(self, outcomes):
         self.outcomes = iter(outcomes)
         self.calls = []
+        self.closed = False
 
     def get(self, url, **kwargs):
         return self._call('GET', url, kwargs)
@@ -44,6 +45,9 @@ class FakeSession:
         if isinstance(outcome, BaseException):
             raise outcome
         return outcome
+
+    def close(self):
+        self.closed = True
 
 
 def test_transparent_user_agent_redirect_and_timeout_are_configurable():
@@ -161,6 +165,69 @@ def test_redirect_to_unregistered_hostname_is_rejected_before_following():
     assert not request.success
     assert request.error == 'Unsafe or unsupported request URL'
     assert len(session.calls) == 1
+
+
+def test_nature_cookie_authorization_redirect_is_allowed(monkeypatch):
+    session = FakeSession([
+        FakeResponse(303, headers={
+            'Location': (
+                'https://idp.nature.com/authorize?redirect_uri='
+                'https%3A%2F%2Fwww.nature.com%2Farticles%2Fexample')}),
+        FakeResponse(302, headers={
+            'Location': 'https://idp.nature.com/transit'}),
+        FakeResponse(302, headers={
+            'Location': 'https://www.nature.com/articles/example'}),
+        FakeResponse(),
+    ])
+    monkeypatch.setattr(requests, 'Session', lambda: session)
+    request = Request('https://www.nature.com/articles/example')
+
+    request.send(max_tries=1)
+
+    assert request.success
+    assert len(session.calls) == 4
+    assert session.closed
+
+
+def test_nature_authorization_host_cannot_be_requested_directly():
+    session = FakeSession([])
+    request = Request('https://idp.nature.com/authorize', session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert session.calls == []
+
+
+def test_nature_authorization_redirect_rejects_unexpected_path():
+    session = FakeSession([FakeResponse(303, headers={
+        'Location': 'https://idp.nature.com/unexpected'})])
+    request = Request('https://www.nature.com/articles/example',
+                      session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert len(session.calls) == 1
+
+
+def test_nature_authorization_cannot_redirect_to_another_publisher():
+    session = FakeSession([
+        FakeResponse(303, headers={
+            'Location': 'https://idp.nature.com/authorize'}),
+        FakeResponse(302, headers={
+            'Location': 'https://pubs.acs.org/doi/example'}),
+    ])
+    request = Request('https://www.nature.com/articles/example',
+                      session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert len(session.calls) == 2
 
 
 def test_request_exception_is_reported_without_escaping():

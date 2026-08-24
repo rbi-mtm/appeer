@@ -37,9 +37,6 @@ INDEPENDENT_ARTICLES = [
 def xfail_known_publisher_access_limit(request):
     if request.status == 403:
         pytest.xfail('publisher denied this transparent automated request')
-    if (request.error == 'Unsafe or unsupported request URL'
-            and request.url.startswith('https://www.nature.com/')):
-        pytest.xfail('official Nature URL redirected outside its supported host')
 
 
 @pytest.mark.slow

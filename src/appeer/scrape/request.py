@@ -28,6 +28,8 @@ SUPPORTED_HOSTS = {
     'www.nature.com',
     'www.sciencedirect.com',
 }
+NATURE_AUTH_HOST = 'idp.nature.com'
+NATURE_AUTH_PATHS = {'/authorize', '/transit'}
 
 
 class Request:
@@ -105,25 +107,66 @@ class Request:
     def _request_with_redirects(self, head, headers, timeout, max_redirects=5):
         """Follow only bounded HTTPS redirects between registered hosts."""
 
-        method = self._session.head if head else self._session.get
+        session = self._session
+        owns_session = session is requests
+        if owns_session:
+            session = requests.Session()
+        method = session.head if head else session.get
         current_url = self.url
-        for _ in range(max_redirects + 1):
+        try:
             if not self._is_allowed_url(current_url):
                 raise ValueError('Unsafe or unsupported request URL')
-            response = method(
-                current_url,
-                headers=headers,
-                timeout=timeout,
-                allow_redirects=False,
+            for _ in range(max_redirects + 1):
+                response = method(
+                    current_url,
+                    headers=headers,
+                    timeout=timeout,
+                    allow_redirects=False,
+                )
+                if not 300 <= response.status_code < 400:
+                    return response
+                location = response.headers.get('Location')
+                if not location:
+                    return response
+                redirect_url = urljoin(current_url, location)
+                if not self._is_allowed_redirect(current_url, redirect_url):
+                    raise ValueError('Unsafe or unsupported request URL')
+                current_url = redirect_url
+            raise requests.exceptions.TooManyRedirects(
+                f'More than {max_redirects} redirects')
+        finally:
+            if owns_session:
+                session.close()
+
+    @staticmethod
+    def _is_allowed_redirect(source_url, target_url):
+        try:
+            source = urlsplit(source_url)
+            target = urlsplit(target_url)
+            secure_target = (
+                target.scheme == 'https'
+                and target.port in (None, 443)
+                and target.username is None
+                and target.password is None
             )
-            if not 300 <= response.status_code < 400:
-                return response
-            location = response.headers.get('Location')
-            if not location:
-                return response
-            current_url = urljoin(current_url, location)
-        raise requests.exceptions.TooManyRedirects(
-            f'More than {max_redirects} redirects')
+        except ValueError:
+            return False
+        if not secure_target:
+            return False
+        if source.hostname == NATURE_AUTH_HOST:
+            return (
+                (target.hostname == NATURE_AUTH_HOST
+                 and target.path in NATURE_AUTH_PATHS)
+                or (target.hostname == 'www.nature.com'
+                    and target.path.startswith('/articles/'))
+            )
+        if Request._is_allowed_url(target_url):
+            return True
+        return (
+            source.hostname == 'www.nature.com'
+            and target.hostname == NATURE_AUTH_HOST
+            and target.path in NATURE_AUTH_PATHS
+        )
 
     @staticmethod
     def _is_allowed_url(url):
