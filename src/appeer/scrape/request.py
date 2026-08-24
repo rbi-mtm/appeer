@@ -2,6 +2,7 @@
 
 import datetime
 from email.utils import parsedate_to_datetime
+import re
 import time
 from urllib.parse import urljoin, urlsplit
 
@@ -30,6 +31,11 @@ SUPPORTED_HOSTS = {
 }
 NATURE_AUTH_HOST = 'idp.nature.com'
 NATURE_AUTH_PATHS = {'/authorize', '/transit'}
+ELSEVIER_LINKING_HOST = 'linkinghub.elsevier.com'
+ELSEVIER_LINKING_PATH = re.compile(
+    r'/retrieve/pii/(?P<pii>S[A-Z0-9]+)\Z', re.IGNORECASE)
+ELSEVIER_ARTICLE_PATH = re.compile(
+    r'/science/article/pii/(?P<pii>S[A-Z0-9]+)\Z', re.IGNORECASE)
 
 
 class Request:
@@ -124,6 +130,15 @@ class Request:
                     allow_redirects=False,
                 )
                 if not 300 <= response.status_code < 400:
+                    elsevier_url = self._elsevier_article_url(
+                        current_url, response.status_code)
+                    if elsevier_url:
+                        if not self._is_allowed_redirect(
+                                current_url, elsevier_url):
+                            raise ValueError(
+                                'Unsafe or unsupported request URL')
+                        current_url = elsevier_url
+                        continue
                     return response
                 location = response.headers.get('Location')
                 if not location:
@@ -160,6 +175,21 @@ class Request:
                 or (target.hostname == 'www.nature.com'
                     and target.path.startswith('/articles/'))
             )
+        if source.hostname == ELSEVIER_LINKING_HOST:
+            source_match = ELSEVIER_LINKING_PATH.fullmatch(source.path)
+            target_match = ELSEVIER_ARTICLE_PATH.fullmatch(target.path)
+            return (
+                target.hostname == 'www.sciencedirect.com'
+                and source_match is not None
+                and target_match is not None
+                and source_match.group('pii').casefold()
+                == target_match.group('pii').casefold()
+            )
+        if target.hostname == ELSEVIER_LINKING_HOST:
+            return (
+                source.hostname == 'doi.org'
+                and ELSEVIER_LINKING_PATH.fullmatch(target.path) is not None
+            )
         if Request._is_allowed_url(target_url):
             return True
         return (
@@ -167,6 +197,23 @@ class Request:
             and target.hostname == NATURE_AUTH_HOST
             and target.path in NATURE_AUTH_PATHS
         )
+
+    @staticmethod
+    def _elsevier_article_url(url, status_code):
+        if status_code != 200:
+            return None
+        try:
+            parsed = urlsplit(url)
+        except ValueError:
+            return None
+        if parsed.hostname != ELSEVIER_LINKING_HOST:
+            return None
+        match = ELSEVIER_LINKING_PATH.fullmatch(parsed.path)
+        if match is None:
+            return None
+        return (
+            'https://www.sciencedirect.com/science/article/pii/'
+            f'{match.group("pii")}')
 
     @staticmethod
     def _is_allowed_url(url):

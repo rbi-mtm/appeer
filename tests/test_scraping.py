@@ -230,6 +230,61 @@ def test_nature_authorization_cannot_redirect_to_another_publisher():
     assert len(session.calls) == 2
 
 
+def test_elsevier_linking_hub_resolves_matching_pii():
+    linking_url = (
+        'https://linkinghub.elsevier.com/retrieve/pii/S1385894722062337')
+    article_url = (
+        'https://www.sciencedirect.com/science/article/pii/'
+        'S1385894722062337')
+    session = FakeSession([
+        FakeResponse(302, headers={'Location': linking_url}),
+        FakeResponse(url=linking_url),
+        FakeResponse(text=(
+            '<html><head>'
+            '<meta name="citation_publisher" content="Elsevier">'
+            '<meta name="citation_doi" '
+            'content="10.1016/j.cej.2022.140753">'
+            '</head></html>'), url=article_url),
+    ])
+    request = Request('https://doi.org/10.1016/j.cej.2022.140753',
+                      session=session)
+
+    request.send(max_tries=1)
+
+    assert request.success
+    assert request.response.url == article_url
+    assert [call[1] for call in session.calls] == [
+        'https://doi.org/10.1016/j.cej.2022.140753',
+        linking_url,
+        article_url,
+    ]
+
+
+def test_elsevier_linking_hub_cannot_be_requested_directly():
+    session = FakeSession([])
+    request = Request(
+        'https://linkinghub.elsevier.com/retrieve/pii/S123',
+        session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert session.calls == []
+
+
+def test_elsevier_linking_hub_rejects_malformed_pii_path():
+    session = FakeSession([FakeResponse(302, headers={
+        'Location': 'https://linkinghub.elsevier.com/retrieve/pii/../S123'})])
+    request = Request('https://doi.org/10.1016/example', session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert len(session.calls) == 1
+
+
 def test_request_exception_is_reported_without_escaping():
     request = Request(
         'https://www.nature.com/articles/example',
