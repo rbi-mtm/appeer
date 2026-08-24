@@ -1,0 +1,14 @@
+{
+  "article_count": 50,
+  "candidate_sha256": "bd73bec7296dd8c55538259b2d274c8cbd160878c1e668f0be6ec534d100b991",
+  "created_at": "2026-08-24T06:42:06.109234+00:00",
+  "publisher_counts": {
+    "ACS": 10,
+    "ELS": 10,
+    "NAT": 20,
+    "RSC": 10
+  },
+  "sample_sha256": "42c1c31cc85e4adc7cf1ac64c0562df08bfa84113231dfc1138276bfd8697b35",
+  "seed": "appeer-pubmed-pilot-v1",
+  "selection": "Up to 10 lowest deterministic ranks per publisher, then lowest remaining ranks across publishers until 50."
+}
