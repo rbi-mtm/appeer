@@ -36,6 +36,12 @@ ELSEVIER_LINKING_PATH = re.compile(
     r'/retrieve/pii/(?P<pii>S[A-Z0-9]+)\Z', re.IGNORECASE)
 ELSEVIER_ARTICLE_PATH = re.compile(
     r'/science/article/pii/(?P<pii>S[A-Z0-9]+)\Z', re.IGNORECASE)
+APS_LINKING_HOST = 'link.aps.org'
+APS_DOI_PATH = re.compile(
+    r'/(?:doi/)?10\.1103/(?P<suffix>[A-Z0-9._()+-]+)\Z', re.IGNORECASE)
+APS_ARTICLE_PATH = re.compile(
+    r'/[a-z0-9-]+/abstract/10\.1103/'
+    r'(?P<suffix>[A-Z0-9._()+-]+)\Z', re.IGNORECASE)
 
 
 class Request:
@@ -117,12 +123,15 @@ class Request:
         owns_session = session is requests
         if owns_session:
             session = requests.Session()
-        method = session.head if head else session.get
         current_url = self.url
+        use_get = not head
         try:
             if not self._is_allowed_url(current_url):
                 raise ValueError('Unsafe or unsupported request URL')
             for _ in range(max_redirects + 1):
+                if urlsplit(current_url).hostname == APS_LINKING_HOST:
+                    use_get = True
+                method = session.get if use_get else session.head
                 response = method(
                     current_url,
                     headers=headers,
@@ -185,10 +194,30 @@ class Request:
                 and source_match.group('pii').casefold()
                 == target_match.group('pii').casefold()
             )
+        if source.hostname == APS_LINKING_HOST:
+            source_match = APS_DOI_PATH.fullmatch(source.path)
+            target_match = APS_ARTICLE_PATH.fullmatch(target.path)
+            return (
+                target.hostname == 'journals.aps.org'
+                and source_match is not None
+                and target_match is not None
+                and source_match.group('suffix').casefold()
+                == target_match.group('suffix').casefold()
+            )
         if target.hostname == ELSEVIER_LINKING_HOST:
             return (
                 source.hostname == 'doi.org'
                 and ELSEVIER_LINKING_PATH.fullmatch(target.path) is not None
+            )
+        if target.hostname == APS_LINKING_HOST:
+            source_match = APS_DOI_PATH.fullmatch(source.path)
+            target_match = APS_DOI_PATH.fullmatch(target.path)
+            return (
+                source.hostname == 'doi.org'
+                and source_match is not None
+                and target_match is not None
+                and source_match.group('suffix').casefold()
+                == target_match.group('suffix').casefold()
             )
         if Request._is_allowed_url(target_url):
             return True

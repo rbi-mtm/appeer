@@ -285,6 +285,65 @@ def test_elsevier_linking_hub_rejects_malformed_pii_path():
     assert len(session.calls) == 1
 
 
+def test_aps_linking_service_switches_head_resolution_to_get():
+    linking_url = 'https://link.aps.org/doi/10.1103/9cyw-m5zr'
+    article_url = (
+        'https://journals.aps.org/prl/abstract/10.1103/9cyw-m5zr')
+    session = FakeSession([
+        FakeResponse(302, headers={'Location': linking_url}),
+        FakeResponse(302, headers={'Location': article_url}, url=linking_url),
+        FakeResponse(url=article_url),
+    ])
+    request = Request('https://doi.org/10.1103/9cyw-m5zr', session=session)
+
+    request.send(head=True, validate_article=False, max_tries=1)
+
+    assert request.success
+    assert request.response.url == article_url
+    assert [call[0] for call in session.calls] == ['HEAD', 'GET', 'GET']
+
+
+def test_aps_linking_service_cannot_be_requested_directly():
+    session = FakeSession([])
+    request = Request('https://link.aps.org/doi/10.1103/9cyw-m5zr',
+                      session=session)
+
+    request.send(max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert session.calls == []
+
+
+def test_aps_linking_service_rejects_mismatched_doi():
+    session = FakeSession([FakeResponse(302, headers={
+        'Location': 'https://link.aps.org/doi/10.1103/different'})])
+    request = Request('https://doi.org/10.1103/9cyw-m5zr', session=session)
+
+    request.send(head=True, validate_article=False, max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert len(session.calls) == 1
+
+
+def test_aps_linking_service_cannot_redirect_to_another_publisher():
+    linking_url = 'https://link.aps.org/doi/10.1103/9cyw-m5zr'
+    session = FakeSession([
+        FakeResponse(302, headers={'Location': linking_url}),
+        FakeResponse(302, headers={
+            'Location': 'https://pubs.acs.org/doi/10.1103/9cyw-m5zr'},
+            url=linking_url),
+    ])
+    request = Request('https://doi.org/10.1103/9cyw-m5zr', session=session)
+
+    request.send(head=True, validate_article=False, max_tries=1)
+
+    assert not request.success
+    assert request.error == 'Unsafe or unsupported request URL'
+    assert len(session.calls) == 2
+
+
 def test_request_exception_is_reported_without_escaping():
     request = Request(
         'https://www.nature.com/articles/example',
